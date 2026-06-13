@@ -1,5 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
+export type Tx = {
+  id: string;
+  type: "deposit" | "withdraw" | "profit";
+  method?: string;
+  amount: number;
+  status: "completed" | "pending" | "processing";
+  date: string;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -7,8 +16,11 @@ export type User = {
   plan: "Starter" | "Silver" | "Gold" | "VIP";
   balance: number;
   invested: number;
+  totalDeposits: number;
+  totalWithdrawals: number;
   verified: boolean;
   twoFactor: boolean;
+  history: Tx[];
 };
 
 type AuthCtx = {
@@ -17,11 +29,12 @@ type AuthCtx = {
   signUp: (name: string, email: string, password: string) => Promise<User>;
   signOut: () => void;
   update: (patch: Partial<User>) => void;
+  addTx: (tx: Omit<Tx, "id" | "date"> & { date?: string }) => void;
 };
 
 const Ctx = createContext<AuthCtx | null>(null);
-const KEY = "gi_user_v1";
-const USERS_KEY = "gi_users_v1";
+const KEY = "gi_user_v2";
+const USERS_KEY = "gi_users_v2";
 
 function loadUsers(): Record<string, { password: string; user: User }> {
   if (typeof window === "undefined") return {};
@@ -47,6 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else localStorage.removeItem(KEY);
   };
 
+  const writeUser = (next: User) => {
+    localStorage.setItem(KEY, JSON.stringify(next));
+    const users = loadUsers();
+    const k = next.email.toLowerCase();
+    if (users[k]) { users[k].user = next; saveUsers(users); }
+  };
+
   const signUp: AuthCtx["signUp"] = async (name, email, password) => {
     const users = loadUsers();
     const key = email.toLowerCase();
@@ -57,8 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       plan: "Starter",
       balance: 0,
       invested: 0,
+      totalDeposits: 0,
+      totalWithdrawals: 0,
       verified: false,
       twoFactor: false,
+      history: [],
     };
     users[key] = { password, user: u };
     saveUsers(users);
@@ -80,15 +103,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(prev => {
       if (!prev) return prev;
       const next = { ...prev, ...patch };
-      localStorage.setItem(KEY, JSON.stringify(next));
-      const users = loadUsers();
-      const k = next.email.toLowerCase();
-      if (users[k]) { users[k].user = next; saveUsers(users); }
+      writeUser(next);
       return next;
     });
   };
 
-  return <Ctx.Provider value={{ user, signIn, signUp, signOut, update }}>{children}</Ctx.Provider>;
+  const addTx: AuthCtx["addTx"] = (tx) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const entry: Tx = {
+        id: crypto.randomUUID(),
+        date: tx.date ?? new Date().toISOString(),
+        type: tx.type,
+        method: tx.method,
+        amount: tx.amount,
+        status: tx.status,
+      };
+      const next = { ...prev, history: [entry, ...prev.history].slice(0, 50) };
+      writeUser(next);
+      return next;
+    });
+  };
+
+  return <Ctx.Provider value={{ user, signIn, signUp, signOut, update, addTx }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {

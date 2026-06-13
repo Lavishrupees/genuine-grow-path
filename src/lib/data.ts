@@ -9,13 +9,13 @@ export type Plan = {
 };
 
 export const PLANS: Plan[] = [
-  { name: "Starter", min: 100, max: 999, roiDaily: "1.2%", duration: "14 days",
+  { name: "Starter", min: 500, max: 1999, roiDaily: "1.2%", duration: "14 days",
     features: ["Welcome bonus credit", "Email support", "Basic education library", "Auto-rollover available"] },
-  { name: "Silver", min: 1000, max: 4999, roiDaily: "1.8%", duration: "21 days",
+  { name: "Silver", min: 2000, max: 4999, roiDaily: "1.8%", duration: "21 days",
     features: ["Priority email support", "Weekly market reports", "Portfolio analytics", "Lower withdrawal fees"] },
-  { name: "Gold", min: 5000, max: 24999, roiDaily: "2.4%", duration: "30 days", highlight: true,
+  { name: "Gold", min: 5000, max: 9999, roiDaily: "2.4%", duration: "30 days", highlight: true,
     features: ["Dedicated advisor", "Advanced strategies", "Crypto + equities mix", "Free withdrawals"] },
-  { name: "VIP", min: 25000, max: null, roiDaily: "3.2%", duration: "45 days",
+  { name: "VIP", min: 10000, max: null, roiDaily: "3.2%", duration: "45 days",
     features: ["Concierge desk", "Custom allocations", "Tax-aware rebalancing", "Quarterly review calls"] },
 ];
 

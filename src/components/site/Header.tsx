@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, ShieldCheck } from "lucide-react";
+import { Menu, X, ShieldCheck, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import { CONTACT } from "@/lib/contact";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -11,6 +12,7 @@ const nav = [
   { to: "/about", label: "About" },
   { to: "/security", label: "Security" },
   { to: "/faq", label: "FAQ" },
+  { to: "/contact", label: "Contact" },
 ] as const;
 
 export function Header() {
@@ -20,6 +22,16 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+      <div className="hidden bg-navy-gradient text-primary-foreground sm:block">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-1.5 text-xs sm:px-6">
+          <span className="text-white/70">24/7 support — Together we succeed.</span>
+          <div className="flex items-center gap-4">
+            <a href={CONTACT.phoneHref} className="inline-flex items-center gap-1.5 text-white/90 hover:text-gold"><Phone className="h-3.5 w-3.5 text-gold" />{CONTACT.phone}</a>
+            <a href={CONTACT.emailHref} className="hidden items-center gap-1.5 text-white/90 hover:text-gold md:inline-flex"><Mail className="h-3.5 w-3.5 text-gold" />{CONTACT.email}</a>
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link to="/" className="flex min-w-0 items-center gap-2">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-navy-gradient text-gold">
