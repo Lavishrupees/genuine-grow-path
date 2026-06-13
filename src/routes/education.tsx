@@ -1,28 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Bitcoin, LineChart, Clock } from "lucide-react";
+import { BookOpen, Bitcoin, LineChart, Clock, Globe2, ShieldAlert, GraduationCap } from "lucide-react";
 
 export const Route = createFileRoute("/education")({
-  head: () => ({ meta: [{ title: "Education — Genuine Investment" }, { name: "description", content: "Learn stocks, crypto and long-term investing with our free education library." }] }),
+  head: () => ({ meta: [{ title: "Education — Genuine Investment" }, { name: "description", content: "Learn stocks, crypto, forex, long-term wealth building and risk management with our free education library." }] }),
   component: Education,
 });
 
 const CATEGORIES = [
-  { icon: LineChart, title: "Stocks", color: "text-blue-500", articles: [
+  { icon: LineChart, title: "Stock market investing", color: "text-blue-500", articles: [
     { t: "Reading a stock chart for beginners", time: "6 min" },
     { t: "Understanding P/E and valuation", time: "8 min" },
     { t: "How dividends actually work", time: "5 min" },
   ]},
-  { icon: Bitcoin, title: "Crypto", color: "text-amber-500", articles: [
+  { icon: Bitcoin, title: "Cryptocurrency", color: "text-amber-500", articles: [
     { t: "Bitcoin vs Ethereum: a primer", time: "7 min" },
     { t: "Wallets, custody and security", time: "9 min" },
     { t: "Stablecoins explained simply", time: "5 min" },
   ]},
-  { icon: Clock, title: "Long-term investing", color: "text-emerald-500", articles: [
+  { icon: Globe2, title: "Forex basics", color: "text-cyan-500", articles: [
+    { t: "Currency pairs and pips explained", time: "6 min" },
+    { t: "Leverage and margin — used safely", time: "8 min" },
+    { t: "Reading economic calendars", time: "5 min" },
+  ]},
+  { icon: Clock, title: "Long-term wealth building", color: "text-emerald-500", articles: [
     { t: "The power of compounding over 30 years", time: "10 min" },
     { t: "Dollar-cost averaging without overthinking", time: "6 min" },
     { t: "Building a 3-fund portfolio", time: "8 min" },
+  ]},
+  { icon: ShieldAlert, title: "Risk management", color: "text-rose-500", articles: [
+    { t: "Position sizing without losing sleep", time: "7 min" },
+    { t: "Diversification across asset classes", time: "8 min" },
+    { t: "When to rebalance your portfolio", time: "6 min" },
+  ]},
+  { icon: GraduationCap, title: "Beginner investment guide", color: "text-violet-500", articles: [
+    { t: "Your first $500 — a step by step plan", time: "9 min" },
+    { t: "Setting SMART financial goals", time: "5 min" },
+    { t: "Avoiding common beginner mistakes", time: "7 min" },
   ]},
 ];
 

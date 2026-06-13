@@ -83,6 +83,25 @@ function Withdraw() {
           <Button type="submit" className="w-full bg-gold-gradient text-gold-foreground">Submit withdrawal request</Button>
         </form>
       </Card>
+
+      <Card className="mt-8 p-6 sm:p-8">
+        <h2 className="font-display text-xl font-semibold">Withdrawal history</h2>
+        {user.history.filter(h => h.type === "withdraw").length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No withdrawals yet.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-border">
+            {user.history.filter(h => h.type === "withdraw").map(h => (
+              <li key={h.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3">
+                <div className="min-w-0">
+                  <div className="font-semibold">${h.amount.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">· {h.method}</span></div>
+                  <div className="text-xs text-muted-foreground">{new Date(h.date).toLocaleString()}</div>
+                </div>
+                <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${h.status === "completed" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/15 text-amber-700 dark:text-amber-300"}`}>{h.status}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }
