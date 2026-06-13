@@ -54,10 +54,16 @@ function Dashboard() {
 
       {/* Stats */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Balance" value={`$${user.balance.toLocaleString()}`} hint="Available" icon={Wallet} />
-        <Stat label="Invested" value={`$${user.invested.toLocaleString()}`} hint="Across plans" />
+        <Stat label="Account balance" value={`$${user.balance.toLocaleString()}`} hint="Available" icon={Wallet} />
+        <Stat label="Total deposits" value={`$${user.totalDeposits.toLocaleString()}`} hint="Lifetime" icon={PiggyBank} />
+        <Stat label="Active investments" value={`$${user.invested.toLocaleString()}`} hint={`${user.plan} plan`} icon={TrendingUp} />
+        <Stat label="Total withdrawals" value={`$${user.totalWithdrawals.toLocaleString()}`} hint="Lifetime" icon={Receipt} />
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Portfolio value" value={`$${current.toLocaleString()}`} hint={`${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`} positive={pct >= 0} />
+        <Stat label="Daily profit (est.)" value={`$${Math.max(0, Math.round(current * 0.012)).toLocaleString()}`} hint="At current ROI" positive />
         <Stat label="Benchmark" value={`$${benchmark.toLocaleString()}`} hint="S&P-style demo" />
+        <Stat label="Plan tier" value={user.plan} hint={`From $${PLANS.find(p => p.name === user.plan)?.min.toLocaleString()}`} />
       </div>
 
       {/* Chart */}
