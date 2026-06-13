@@ -16,7 +16,7 @@ export const Route = createFileRoute("/withdraw")({
 });
 
 function Withdraw() {
-  const { user, update } = useAuth();
+  const { user, update, addTx } = useAuth();
   const navigate = useNavigate();
   const [amount, setAmount] = useState(0);
   const [method, setMethod] = useState("bank");
@@ -28,7 +28,8 @@ function Withdraw() {
     e.preventDefault();
     if (amount <= 0) { toast.error("Enter a valid amount"); return; }
     if (amount > user.balance) { toast.error("Insufficient balance"); return; }
-    update({ balance: user.balance - amount });
+    update({ balance: user.balance - amount, totalWithdrawals: user.totalWithdrawals + amount });
+    addTx({ type: "withdraw", method, amount, status: "processing" });
     toast.success(`Withdrawal of $${amount.toLocaleString()} submitted — processing within 24h`);
     setAmount(0);
   };

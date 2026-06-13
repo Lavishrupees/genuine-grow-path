@@ -15,7 +15,7 @@ export const Route = createFileRoute("/deposit")({
 });
 
 function Deposit() {
-  const { user, update } = useAuth();
+  const { user, update, addTx } = useAuth();
   const navigate = useNavigate();
   const [amount, setAmount] = useState(500);
 
@@ -25,7 +25,12 @@ function Deposit() {
   const confirm = (method: string) => {
     if (amount < 50) { toast.error("Minimum deposit is $50"); return; }
     if (amount > 1_000_000) { toast.error("Amount too large"); return; }
-    update({ balance: user.balance + amount, invested: user.invested + amount });
+    update({
+      balance: user.balance + amount,
+      invested: user.invested + amount,
+      totalDeposits: user.totalDeposits + amount,
+    });
+    addTx({ type: "deposit", method, amount, status: "completed" });
     toast.success(`Demo deposit of $${amount.toLocaleString()} via ${method} confirmed`);
   };
 
