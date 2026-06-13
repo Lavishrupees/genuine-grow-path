@@ -120,7 +120,67 @@ function Dashboard() {
           })}
         </div>
       </div>
+
+      {/* Profit calculator + History */}
+      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+        <ProfitCalculator />
+        <Card className="p-6">
+          <h2 className="font-display text-xl font-semibold">Investment history</h2>
+          <p className="text-sm text-muted-foreground">Recent deposits, withdrawals and profits.</p>
+          {user.history.length === 0 ? (
+            <p className="mt-6 text-sm text-muted-foreground">No transactions yet. Make a deposit to get started.</p>
+          ) : (
+            <ul className="mt-4 divide-y divide-border">
+              {user.history.slice(0, 8).map(h => (
+                <li key={h.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3">
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold capitalize">{h.type}<span className="ml-2 text-xs font-normal text-muted-foreground">{h.method ? `· ${h.method}` : ""}</span></div>
+                    <div className="text-xs text-muted-foreground">{new Date(h.date).toLocaleString()}</div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className={`font-semibold ${h.type === "withdraw" ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}`}>{h.type === "withdraw" ? "-" : "+"}${h.amount.toLocaleString()}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{h.status}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
     </div>
+  );
+}
+
+function ProfitCalculator() {
+  const [amount, setAmount] = useState(2000);
+  const [days, setDays] = useState(30);
+  const [planName, setPlanName] = useState<typeof PLANS[number]["name"]>("Gold");
+  const plan = PLANS.find(p => p.name === planName)!;
+  const dailyPct = parseFloat(plan.roiDaily) / 100;
+  const projected = Math.round(amount * Math.pow(1 + dailyPct, days));
+  const profit = projected - amount;
+  return (
+    <Card className="p-6">
+      <div className="flex items-center gap-2"><Calculator className="h-5 w-5 text-gold" /><h2 className="font-display text-xl font-semibold">Profit calculator</h2></div>
+      <p className="text-sm text-muted-foreground">Estimate compounding returns by plan. Demo figures only.</p>
+      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+        <div className="space-y-2"><Label>Amount ($)</Label><Input type="number" min={100} value={amount} onChange={e => setAmount(Math.max(0, Number(e.target.value) || 0))} /></div>
+        <div className="space-y-2"><Label>Days</Label><Input type="number" min={1} max={365} value={days} onChange={e => setDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)))} /></div>
+        <div className="space-y-2">
+          <Label>Plan</Label>
+          <div className="flex flex-wrap gap-1">
+            {PLANS.map(p => (
+              <button key={p.name} type="button" onClick={() => setPlanName(p.name)} className={`rounded-md border px-2 py-1 text-xs font-medium ${planName === p.name ? "border-gold bg-gold/10 text-foreground" : "border-border text-muted-foreground hover:bg-secondary"}`}>{p.name}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="mt-5 grid gap-3 rounded-lg bg-secondary/50 p-4 sm:grid-cols-3">
+        <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Projected value</div><div className="font-display text-2xl font-bold">${projected.toLocaleString()}</div></div>
+        <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Profit</div><div className="font-display text-2xl font-bold text-emerald-600 dark:text-emerald-400">+${profit.toLocaleString()}</div></div>
+        <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Daily ROI</div><div className="font-display text-2xl font-bold text-gold">{plan.roiDaily}</div></div>
+      </div>
+    </Card>
   );
 }
 
