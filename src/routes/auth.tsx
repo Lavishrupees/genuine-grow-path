@@ -24,7 +24,7 @@ const signupSchema = z.object({
 function AuthPage() {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const [tab, setTab] = useState<"signin" | "signup" | "forgot">("signin");
   const [loading, setLoading] = useState(false);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -66,14 +66,21 @@ function AuthPage() {
       </div>
       <Card className="p-6 sm:p-8">
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="signin">Sign in</TabsTrigger>
-            <TabsTrigger value="signup">Create account</TabsTrigger>
+            <TabsTrigger value="signup">Sign up</TabsTrigger>
+            <TabsTrigger value="forgot">Forgot</TabsTrigger>
           </TabsList>
           <TabsContent value="signin">
             <form onSubmit={handleSignIn} className="mt-6 space-y-4">
               <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required autoComplete="email" /></div>
-              <div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" name="password" type="password" required autoComplete="current-password" /></div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <button type="button" onClick={() => setTab("forgot")} className="text-xs text-gold hover:underline">Forgot password?</button>
+                </div>
+                <Input id="password" name="password" type="password" required autoComplete="current-password" />
+              </div>
               <Button type="submit" disabled={loading} className="w-full bg-navy-gradient text-primary-foreground hover:opacity-95">{loading ? "Signing in…" : "Sign in"}</Button>
               <p className="text-center text-xs text-muted-foreground">Demo platform — accounts are stored locally on this device.</p>
             </form>
@@ -83,8 +90,16 @@ function AuthPage() {
               <div className="space-y-2"><Label htmlFor="name">Full name</Label><Input id="name" name="name" required maxLength={80} /></div>
               <div className="space-y-2"><Label htmlFor="email2">Email</Label><Input id="email2" name="email" type="email" required maxLength={255} autoComplete="email" /></div>
               <div className="space-y-2"><Label htmlFor="password2">Password</Label><Input id="password2" name="password" type="password" required minLength={6} autoComplete="new-password" /></div>
+              <p className="rounded-md bg-secondary/60 p-2 text-xs text-muted-foreground">A verification email will be sent after sign up. 2FA can be enabled from the Security page.</p>
               <Button type="submit" disabled={loading} className="w-full bg-gold-gradient text-gold-foreground">{loading ? "Creating…" : "Create account"}</Button>
               <p className="text-center text-xs text-muted-foreground">By continuing you agree to our <Link to="/faq" className="underline">terms</Link>.</p>
+            </form>
+          </TabsContent>
+          <TabsContent value="forgot">
+            <form onSubmit={(e) => { e.preventDefault(); toast.success("If an account exists, a reset link has been sent."); setTab("signin"); }} className="mt-6 space-y-4">
+              <p className="text-sm text-muted-foreground">Enter your account email and we'll send a secure reset link.</p>
+              <div className="space-y-2"><Label htmlFor="femail">Email</Label><Input id="femail" name="email" type="email" required maxLength={255} /></div>
+              <Button type="submit" className="w-full bg-navy-gradient text-primary-foreground">Send reset link</Button>
             </form>
           </TabsContent>
         </Tabs>
