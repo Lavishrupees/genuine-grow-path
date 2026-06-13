@@ -50,7 +50,7 @@ function Education() {
         <p className="mt-3 text-muted-foreground">Plain-English guides on stocks, crypto and long-term investing — written by analysts, no jargon.</p>
       </div>
 
-      <div className="mt-12 grid gap-6 lg:grid-cols-3">
+      <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {CATEGORIES.map(cat => (
           <Card key={cat.title} className="p-6">
             <div className="flex items-center gap-3">
