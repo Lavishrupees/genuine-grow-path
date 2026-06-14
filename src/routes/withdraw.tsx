@@ -16,22 +16,28 @@ export const Route = createFileRoute("/withdraw")({
 });
 
 function Withdraw() {
-  const { user, update, addTx } = useAuth();
+  const { user, session, addTx, loading } = useAuth();
   const navigate = useNavigate();
   const [amount, setAmount] = useState(0);
   const [method, setMethod] = useState("bank");
+  const [destination, setDestination] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => { if (!user) navigate({ to: "/auth" }); }, [user, navigate]);
+  useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
   if (!user) return null;
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (amount <= 0) { toast.error("Enter a valid amount"); return; }
     if (amount > user.balance) { toast.error("Insufficient balance"); return; }
-    update({ balance: user.balance - amount, totalWithdrawals: user.totalWithdrawals + amount });
-    addTx({ type: "withdraw", method, amount, status: "processing" });
-    toast.success(`Withdrawal of $${amount.toLocaleString()} submitted — processing within 24h`);
-    setAmount(0);
+    if (!destination.trim()) { toast.error("Enter your payout destination"); return; }
+    setSubmitting(true);
+    try {
+      await addTx({ type: "withdraw", method, amount, status: "pending", reference: destination.trim().slice(0, 200) });
+      toast.success(`Withdrawal of $${amount.toLocaleString()} submitted — pending admin review.`);
+      setAmount(0); setDestination("");
+    } catch (e) { toast.error((e as Error).message); }
+    finally { setSubmitting(false); }
   };
 
   return (
@@ -57,30 +63,24 @@ function Withdraw() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="bank">Bank transfer (1-3 days)</SelectItem>
-                  <SelectItem value="card">Card refund</SelectItem>
                   <SelectItem value="crypto">Crypto wallet</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {method === "bank" && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2"><Label>Bank name</Label><Input required maxLength={100} /></div>
-              <div className="space-y-2"><Label>Account number / IBAN</Label><Input required maxLength={40} /></div>
-            </div>
-          )}
-          {method === "crypto" && (
-            <div className="space-y-2"><Label>Wallet address</Label><Input required maxLength={120} placeholder="bc1q…" /></div>
-          )}
+          <div className="space-y-2">
+            <Label>{method === "bank" ? "Bank account / IBAN" : "Wallet address"}</Label>
+            <Input value={destination} onChange={e => setDestination(e.target.value)} required maxLength={200} placeholder={method === "bank" ? "Bank name, account number" : "bc1q…"} />
+          </div>
 
           <div className="space-y-2"><Label>Note (optional)</Label><Textarea maxLength={500} placeholder="Anything we should know?" /></div>
 
           <div className="rounded-md bg-secondary/60 p-3 text-xs text-muted-foreground">
-            Withdrawals are reviewed for security and typically processed within 24 business hours. A small network fee may apply for crypto.
+            Withdrawals are reviewed for security and typically processed within 24 business hours.
           </div>
 
-          <Button type="submit" className="w-full bg-gold-gradient text-gold-foreground">Submit withdrawal request</Button>
+          <Button type="submit" disabled={submitting} className="w-full bg-gold-gradient text-gold-foreground">Submit withdrawal request</Button>
         </form>
       </Card>
 
@@ -96,7 +96,7 @@ function Withdraw() {
                   <div className="font-semibold">${h.amount.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">· {h.method}</span></div>
                   <div className="text-xs text-muted-foreground">{new Date(h.date).toLocaleString()}</div>
                 </div>
-                <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${h.status === "completed" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/15 text-amber-700 dark:text-amber-300"}`}>{h.status}</span>
+                <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold capitalize ${h.status === "completed" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : h.status === "rejected" ? "bg-destructive/15 text-destructive" : "bg-amber-500/15 text-amber-700 dark:text-amber-300"}`}>{h.status}</span>
               </li>
             ))}
           </ul>

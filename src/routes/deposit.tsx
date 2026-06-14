@@ -6,38 +6,38 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Landmark, CreditCard, Bitcoin, Copy } from "lucide-react";
+import { Landmark, Bitcoin, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/deposit")({
-  head: () => ({ meta: [{ title: "Deposit — Genuine Investment" }, { name: "description", content: "Fund your account via bank transfer, card or crypto wallet." }] }),
+  head: () => ({ meta: [{ title: "Deposit — Genuine Investment" }, { name: "description", content: "Fund your account via bank transfer or crypto wallet." }] }),
   component: Deposit,
 });
 
 function Deposit() {
-  const { user, update, addTx } = useAuth();
+  const { user, session, addTx, loading } = useAuth();
   const navigate = useNavigate();
   const [amount, setAmount] = useState(500);
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => { if (!user) navigate({ to: "/auth" }); }, [user, navigate]);
+  useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
   if (!user) return null;
 
-  const confirm = (method: string) => {
+  const submit = async (method: string, reference?: string) => {
     if (amount < 50) { toast.error("Minimum deposit is $50"); return; }
     if (amount > 1_000_000) { toast.error("Amount too large"); return; }
-    update({
-      balance: user.balance + amount,
-      invested: user.invested + amount,
-      totalDeposits: user.totalDeposits + amount,
-    });
-    addTx({ type: "deposit", method, amount, status: "completed" });
-    toast.success(`Demo deposit of $${amount.toLocaleString()} via ${method} confirmed`);
+    setSubmitting(true);
+    try {
+      await addTx({ type: "deposit", method, amount, status: "pending", reference });
+      toast.success(`Deposit request of $${amount.toLocaleString()} submitted — pending admin confirmation.`);
+    } catch (e) { toast.error((e as Error).message); }
+    finally { setSubmitting(false); }
   };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
       <h1 className="font-display text-4xl font-bold">Deposit funds</h1>
-      <p className="mt-2 text-muted-foreground">Choose your preferred method. All deposits in this demo are simulated.</p>
+      <p className="mt-2 text-muted-foreground">Choose your preferred method. Once we confirm receipt of funds, your balance is credited automatically.</p>
 
       <Card className="mt-8 p-6 sm:p-8">
         <div className="mb-6 grid gap-3 sm:max-w-sm">
@@ -51,9 +51,8 @@ function Deposit() {
         </div>
 
         <Tabs defaultValue="bank">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="bank"><Landmark className="mr-2 h-4 w-4" />Bank</TabsTrigger>
-            <TabsTrigger value="card"><CreditCard className="mr-2 h-4 w-4" />Card</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="bank"><Landmark className="mr-2 h-4 w-4" />Bank transfer</TabsTrigger>
             <TabsTrigger value="crypto"><Bitcoin className="mr-2 h-4 w-4" />Crypto</TabsTrigger>
           </TabsList>
 
@@ -61,31 +60,60 @@ function Deposit() {
             <Detail label="Bank" value="Genuine Trust & Co." />
             <Detail label="Account" value="GI-839 220 4471" copy />
             <Detail label="Routing / SWIFT" value="GENUUS33" copy />
-            <Detail label="Reference" value={`GI-${user.id.slice(0,8).toUpperCase()}`} copy />
-            <Button onClick={() => confirm("bank transfer")} className="bg-navy-gradient text-primary-foreground">I've sent the transfer</Button>
-          </TabsContent>
-
-          <TabsContent value="card" className="mt-6 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2"><Label>Card number</Label><Input placeholder="4242 4242 4242 4242" maxLength={19} /></div>
-              <div className="space-y-2"><Label>Expiry</Label><Input placeholder="MM / YY" maxLength={7} /></div>
-              <div className="space-y-2"><Label>CVC</Label><Input placeholder="123" maxLength={4} /></div>
-              <div className="space-y-2 sm:col-span-2"><Label>Cardholder name</Label><Input placeholder={user.name} /></div>
-            </div>
-            <Button onClick={() => confirm("card")} className="bg-gold-gradient text-gold-foreground">Pay ${amount.toLocaleString()}</Button>
+            <Detail label="Reference (include this)" value={`GI-${user.id.slice(0,8).toUpperCase()}`} copy />
+            <Button disabled={submitting} onClick={() => submit("bank transfer", `GI-${user.id.slice(0,8).toUpperCase()}`)} className="bg-navy-gradient text-primary-foreground">I've sent the transfer</Button>
           </TabsContent>
 
           <TabsContent value="crypto" className="mt-6 space-y-4">
-            <Detail label="Network" value="Bitcoin (BTC)" />
-            <Detail label="Wallet address" value="bc1qgenuinedemoaddress0xabc1234567890def" copy />
+            <Tabs defaultValue="btc">
+              <TabsList><TabsTrigger value="btc">BTC</TabsTrigger><TabsTrigger value="eth">ETH</TabsTrigger><TabsTrigger value="usdt">USDT (TRC-20)</TabsTrigger></TabsList>
+              <TabsContent value="btc" className="mt-4 space-y-3">
+                <Detail label="Network" value="Bitcoin (BTC)" />
+                <Detail label="Wallet address" value="bc1qgenuinedemoaddress0xabc1234567890def" copy />
+              </TabsContent>
+              <TabsContent value="eth" className="mt-4 space-y-3">
+                <Detail label="Network" value="Ethereum (ERC-20)" />
+                <Detail label="Wallet address" value="0xGenuine0000Demo0Address1234567890ABCDEF" copy />
+              </TabsContent>
+              <TabsContent value="usdt" className="mt-4 space-y-3">
+                <Detail label="Network" value="Tether USDT (TRC-20)" />
+                <Detail label="Wallet address" value="TGenuineDemoTronAddress1234567890XYZ" copy />
+              </TabsContent>
+            </Tabs>
             <Detail label="Memo / tag" value={user.id.slice(0,8).toUpperCase()} copy />
-            <p className="text-xs text-muted-foreground">Send only BTC to this address. Other networks (ETH, USDT, USDC) available on request from your dashboard.</p>
-            <Button onClick={() => confirm("crypto wallet")} className="bg-navy-gradient text-primary-foreground">I've sent the crypto</Button>
+            <p className="text-xs text-muted-foreground">After sending, click below. Funds are credited once the network confirms and an admin reviews the transaction.</p>
+            <Button disabled={submitting} onClick={() => submit("crypto wallet", user.id.slice(0,8).toUpperCase())} className="bg-navy-gradient text-primary-foreground">I've sent the crypto</Button>
           </TabsContent>
         </Tabs>
       </Card>
+
+      <Card className="mt-8 p-6 sm:p-8">
+        <h2 className="font-display text-xl font-semibold">Recent deposit requests</h2>
+        {user.history.filter(h => h.type === "deposit").length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No deposits yet.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-border">
+            {user.history.filter(h => h.type === "deposit").slice(0, 10).map(h => (
+              <li key={h.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3">
+                <div className="min-w-0">
+                  <div className="font-semibold">${h.amount.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">· {h.method}</span></div>
+                  <div className="text-xs text-muted-foreground">{new Date(h.date).toLocaleString()}</div>
+                </div>
+                <StatusPill status={h.status} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
+}
+
+function StatusPill({ status }: { status: string }) {
+  const cls = status === "completed" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+    : status === "rejected" ? "bg-destructive/15 text-destructive"
+    : "bg-amber-500/15 text-amber-700 dark:text-amber-300";
+  return <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold capitalize ${cls}`}>{status}</span>;
 }
 
 function Detail({ label, value, copy }: { label: string; value: string; copy?: boolean }) {
