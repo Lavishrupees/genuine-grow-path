@@ -17,10 +17,10 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const { user, update } = useAuth();
+  const { user, session, loading, update } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => { if (!user) navigate({ to: "/auth" }); }, [user, navigate]);
+  useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
   if (!user) return null;
 
   const series = useMemo(() => buildSeries(Math.max(user.invested, 10000), 30), [user.invested]);
@@ -28,9 +28,9 @@ function Dashboard() {
   const benchmark = series[series.length - 1].benchmark;
   const pct = ((current - series[0].portfolio) / series[0].portfolio) * 100;
 
-  const selectPlan = (name: typeof user.plan) => {
-    update({ plan: name });
-    toast.success(`Selected ${name} plan`);
+  const selectPlan = async (name: typeof user.plan) => {
+    try { await update({ plan: name }); toast.success(`Selected ${name} plan`); }
+    catch (e) { toast.error((e as Error).message); }
   };
 
   return (

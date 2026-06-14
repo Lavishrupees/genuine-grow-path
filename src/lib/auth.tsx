@@ -1,19 +1,25 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
+
+export type PlanName = "Starter" | "Silver" | "Gold" | "VIP";
 
 export type Tx = {
   id: string;
   type: "deposit" | "withdraw" | "profit";
-  method?: string;
+  method: string | null;
   amount: number;
-  status: "completed" | "pending" | "processing";
+  status: "pending" | "processing" | "completed" | "rejected";
   date: string;
+  reference?: string | null;
+  admin_note?: string | null;
 };
 
 export type User = {
   id: string;
   name: string;
   email: string;
-  plan: "Starter" | "Silver" | "Gold" | "VIP";
+  plan: PlanName;
   balance: number;
   invested: number;
   totalDeposits: number;
@@ -25,107 +31,146 @@ export type User = {
 
 type AuthCtx = {
   user: User | null;
-  signIn: (email: string, password: string) => Promise<User>;
-  signUp: (name: string, email: string, password: string) => Promise<User>;
-  signOut: () => void;
-  update: (patch: Partial<User>) => void;
-  addTx: (tx: Omit<Tx, "id" | "date"> & { date?: string }) => void;
+  session: Session | null;
+  loading: boolean;
+  isAdmin: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  update: (patch: Partial<Pick<User, "plan" | "verified" | "twoFactor" | "name">>) => Promise<void>;
+  addTx: (tx: { type: Tx["type"]; method?: string; amount: number; status?: Tx["status"]; reference?: string }) => Promise<void>;
+  refresh: () => Promise<void>;
 };
 
 const Ctx = createContext<AuthCtx | null>(null);
-const KEY = "gi_user_v2";
-const USERS_KEY = "gi_users_v2";
 
-function loadUsers(): Record<string, { password: string; user: User }> {
-  if (typeof window === "undefined") return {};
-  try { return JSON.parse(localStorage.getItem(USERS_KEY) || "{}"); } catch { return {}; }
-}
-function saveUsers(u: Record<string, { password: string; user: User }>) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(u));
+function rowToTx(r: any): Tx {
+  return {
+    id: r.id,
+    type: r.type,
+    method: r.method,
+    amount: Number(r.amount),
+    status: r.status,
+    date: r.created_at,
+    reference: r.reference,
+    admin_note: r.admin_note,
+  };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setUser(JSON.parse(raw));
-    } catch {}
+  const loadProfile = useCallback(async (uid: string) => {
+    const [{ data: profile }, { data: roles }, { data: txs }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", uid),
+      supabase.from("transactions").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(50),
+    ]);
+    if (!profile) { setUser(null); setIsAdmin(false); return; }
+    setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
+    setUser({
+      id: profile.id,
+      name: profile.name || profile.email?.split("@")[0] || "Investor",
+      email: profile.email,
+      plan: (profile.plan as PlanName) ?? "Starter",
+      balance: Number(profile.balance ?? 0),
+      invested: Number(profile.invested ?? 0),
+      totalDeposits: Number(profile.total_deposits ?? 0),
+      totalWithdrawals: Number(profile.total_withdrawals ?? 0),
+      verified: !!profile.verified,
+      twoFactor: !!profile.two_factor,
+      history: (txs ?? []).map(rowToTx),
+    });
   }, []);
 
-  const persist = (u: User | null) => {
-    setUser(u);
-    if (u) localStorage.setItem(KEY, JSON.stringify(u));
-    else localStorage.removeItem(KEY);
-  };
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      if (s?.user) {
+        setTimeout(() => { loadProfile(s.user.id); }, 0);
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
+    });
+    supabase.auth.getSession().then(async ({ data }) => {
+      setSession(data.session);
+      if (data.session?.user) await loadProfile(data.session.user.id);
+      setLoading(false);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [loadProfile]);
 
-  const writeUser = (next: User) => {
-    localStorage.setItem(KEY, JSON.stringify(next));
-    const users = loadUsers();
-    const k = next.email.toLowerCase();
-    if (users[k]) { users[k].user = next; saveUsers(users); }
-  };
+  // Realtime: refresh on changes to my transactions/profile
+  useEffect(() => {
+    if (!session?.user) return;
+    const uid = session.user.id;
+    const ch = supabase
+      .channel("me:" + uid)
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${uid}` }, () => loadProfile(uid))
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${uid}` }, () => loadProfile(uid))
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [session?.user, loadProfile]);
 
   const signUp: AuthCtx["signUp"] = async (name, email, password) => {
-    const users = loadUsers();
-    const key = email.toLowerCase();
-    if (users[key]) throw new Error("Account already exists");
-    const u: User = {
-      id: crypto.randomUUID(),
-      name, email,
-      plan: "Starter",
-      balance: 0,
-      invested: 0,
-      totalDeposits: 0,
-      totalWithdrawals: 0,
-      verified: false,
-      twoFactor: false,
-      history: [],
-    };
-    users[key] = { password, user: u };
-    saveUsers(users);
-    persist(u);
-    return u;
+    const { error } = await supabase.auth.signUp({
+      email, password,
+      options: {
+        data: { name },
+        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+      },
+    });
+    if (error) throw error;
   };
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
-    const users = loadUsers();
-    const rec = users[email.toLowerCase()];
-    if (!rec || rec.password !== password) throw new Error("Invalid credentials");
-    persist(rec.user);
-    return rec.user;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
   };
 
-  const signOut = () => persist(null);
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setIsAdmin(false);
+    setSession(null);
+  };
 
-  const update: AuthCtx["update"] = (patch) => {
-    setUser(prev => {
-      if (!prev) return prev;
-      const next = { ...prev, ...patch };
-      writeUser(next);
-      return next;
+  const update: AuthCtx["update"] = async (patch) => {
+    if (!session?.user) throw new Error("Not signed in");
+    const dbPatch: { plan?: string; verified?: boolean; two_factor?: boolean; name?: string } = {};
+    if (patch.plan !== undefined) dbPatch.plan = patch.plan;
+    if (patch.verified !== undefined) dbPatch.verified = patch.verified;
+    if (patch.twoFactor !== undefined) dbPatch.two_factor = patch.twoFactor;
+    if (patch.name !== undefined) dbPatch.name = patch.name;
+    const { error } = await supabase.from("profiles").update(dbPatch).eq("id", session.user.id);
+    if (error) throw error;
+    await loadProfile(session.user.id);
+  };
+
+  const addTx: AuthCtx["addTx"] = async (tx) => {
+    if (!session?.user) throw new Error("Not signed in");
+    const { error } = await supabase.from("transactions").insert({
+      user_id: session.user.id,
+      type: tx.type,
+      method: tx.method ?? null,
+      amount: tx.amount,
+      status: tx.status ?? "pending",
+      reference: tx.reference ?? null,
     });
+    if (error) throw error;
   };
 
-  const addTx: AuthCtx["addTx"] = (tx) => {
-    setUser(prev => {
-      if (!prev) return prev;
-      const entry: Tx = {
-        id: crypto.randomUUID(),
-        date: tx.date ?? new Date().toISOString(),
-        type: tx.type,
-        method: tx.method,
-        amount: tx.amount,
-        status: tx.status,
-      };
-      const next = { ...prev, history: [entry, ...prev.history].slice(0, 50) };
-      writeUser(next);
-      return next;
-    });
-  };
+  const refresh = async () => { if (session?.user) await loadProfile(session.user.id); };
 
-  return <Ctx.Provider value={{ user, signIn, signUp, signOut, update, addTx }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ user, session, loading, isAdmin, signIn, signUp, signOut, update, addTx, refresh }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export function useAuth() {
