@@ -16,9 +16,10 @@ const nav = [
 ] as const;
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const handleSignOut = async () => { await signOut(); navigate({ to: "/" }); };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
@@ -59,13 +60,14 @@ export function Header() {
         <div className="hidden items-center gap-2 lg:flex">
           {user ? (
             <>
+              {isAdmin && <Button asChild variant="outline" size="sm"><Link to="/admin">Admin</Link></Button>}
               <span className="text-sm text-muted-foreground">Hi, {user.name.split(" ")[0]}</span>
-              <Button variant="outline" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>Sign out</Button>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>Sign out</Button>
             </>
           ) : (
             <>
               <Button asChild variant="ghost" size="sm"><Link to="/auth">Sign in</Link></Button>
-              <Button asChild size="sm" className="bg-gold-gradient text-gold-foreground hover:opacity-90"><Link to="/auth" search={{ mode: "signup" }}>Get started</Link></Button>
+              <Button asChild size="sm" className="bg-gold-gradient text-gold-foreground hover:opacity-90"><Link to="/auth">Get started</Link></Button>
             </>
           )}
         </div>
@@ -94,7 +96,10 @@ export function Header() {
             ))}
             <div className="mt-2 flex gap-2">
               {user ? (
-                <Button variant="outline" className="flex-1" onClick={() => { signOut(); setOpen(false); navigate({ to: "/" }); }}>Sign out</Button>
+                <>
+                  {isAdmin && <Button asChild variant="outline" className="flex-1"><Link to="/admin" onClick={() => setOpen(false)}>Admin</Link></Button>}
+                  <Button variant="outline" className="flex-1" onClick={async () => { await signOut(); setOpen(false); navigate({ to: "/" }); }}>Sign out</Button>
+                </>
               ) : (
                 <>
                   <Button asChild variant="outline" className="flex-1"><Link to="/auth" onClick={() => setOpen(false)}>Sign in</Link></Button>
