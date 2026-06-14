@@ -141,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const update: AuthCtx["update"] = async (patch) => {
     if (!session?.user) throw new Error("Not signed in");
-    const dbPatch: Record<string, unknown> = {};
+    const dbPatch: { plan?: string; verified?: boolean; two_factor?: boolean; name?: string } = {};
     if (patch.plan !== undefined) dbPatch.plan = patch.plan;
     if (patch.verified !== undefined) dbPatch.verified = patch.verified;
     if (patch.twoFactor !== undefined) dbPatch.two_factor = patch.twoFactor;
