@@ -19,11 +19,12 @@ export const Route = createFileRoute("/dashboard")({
 function Dashboard() {
   const { user, session, loading, update } = useAuth();
   const navigate = useNavigate();
+  const chartBase = Math.max(user?.invested ?? 10000, 10000);
+  const series = useMemo(() => buildSeries(chartBase, 30), [chartBase]);
 
   useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
   if (!user) return null;
 
-  const series = useMemo(() => buildSeries(Math.max(user.invested, 10000), 30), [user.invested]);
   const current = series[series.length - 1].portfolio;
   const benchmark = series[series.length - 1].benchmark;
   const pct = ((current - series[0].portfolio) / series[0].portfolio) * 100;
