@@ -27,6 +27,11 @@ function AuthPage() {
   const [tab, setTab] = useState<"signin" | "signup" | "forgot">("signin");
   const [loading, setLoading] = useState(false);
 
+  const showAuthError = (err: unknown) => {
+    const message = err instanceof Error ? err.message : "Unable to complete this request.";
+    toast.error(message);
+  };
+
   useEffect(() => { if (session) navigate({ to: "/dashboard" }); }, [session, navigate]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,7 +42,7 @@ function AuthPage() {
       await signIn(String(fd.get("email")), String(fd.get("password")));
       toast.success("Welcome back");
       navigate({ to: "/dashboard" });
-    } catch (err) { toast.error((err as Error).message); }
+    } catch (err) { showAuthError(err); }
     finally { setLoading(false); }
   };
 
@@ -52,8 +57,8 @@ function AuthPage() {
       toast.success("Account created — signing you in…");
       // Try to sign in immediately (auto-confirm is enabled)
       try { await signIn(parsed.data.email, parsed.data.password); navigate({ to: "/dashboard" }); }
-      catch (signInErr) { toast.error((signInErr as Error).message); setTab("signin"); }
-    } catch (err) { toast.error((err as Error).message); }
+      catch (signInErr) { showAuthError(signInErr); setTab("signin"); }
+    } catch (err) { showAuthError(err); }
     finally { setLoading(false); }
   };
 
