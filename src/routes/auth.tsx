@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -53,7 +52,7 @@ function AuthPage() {
       toast.success("Account created — signing you in…");
       // Try to sign in immediately (auto-confirm is enabled)
       try { await signIn(parsed.data.email, parsed.data.password); navigate({ to: "/dashboard" }); }
-      catch { /* email may need verification */ setTab("signin"); }
+      catch (signInErr) { toast.error((signInErr as Error).message); setTab("signin"); }
     } catch (err) { toast.error((err as Error).message); }
     finally { setLoading(false); }
   };
@@ -82,13 +81,19 @@ function AuthPage() {
         </ul>
       </div>
       <Card className="p-6 sm:p-8">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="signin">Sign in</TabsTrigger>
-            <TabsTrigger value="signup">Sign up</TabsTrigger>
-            <TabsTrigger value="forgot">Forgot</TabsTrigger>
-          </TabsList>
-          <TabsContent value="signin">
+        <div className="grid w-full grid-cols-3 rounded-lg bg-muted p-1 text-muted-foreground">
+          {(["signin", "signup", "forgot"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setTab(value)}
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all ${tab === value ? "bg-background text-foreground shadow" : "hover:text-foreground"}`}
+            >
+              {value === "signin" ? "Sign in" : value === "signup" ? "Sign up" : "Forgot"}
+            </button>
+          ))}
+        </div>
+          {tab === "signin" && (
             <form onSubmit={handleSignIn} className="mt-6 space-y-4">
               <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" required autoComplete="email" /></div>
               <div className="space-y-2">
@@ -100,8 +105,8 @@ function AuthPage() {
               </div>
               <Button type="submit" disabled={loading} className="w-full bg-navy-gradient text-primary-foreground hover:opacity-95">{loading ? "Signing in…" : "Sign in"}</Button>
             </form>
-          </TabsContent>
-          <TabsContent value="signup">
+          )}
+          {tab === "signup" && (
             <form onSubmit={handleSignUp} className="mt-6 space-y-4">
               <div className="space-y-2"><Label htmlFor="name">Full name</Label><Input id="name" name="name" required maxLength={80} /></div>
               <div className="space-y-2"><Label htmlFor="email2">Email</Label><Input id="email2" name="email" type="email" required maxLength={255} autoComplete="email" /></div>
@@ -109,15 +114,14 @@ function AuthPage() {
               <Button type="submit" disabled={loading} className="w-full bg-gold-gradient text-gold-foreground">{loading ? "Creating…" : "Create account"}</Button>
               <p className="text-center text-xs text-muted-foreground">By continuing you agree to our <Link to="/faq" className="underline">terms</Link>.</p>
             </form>
-          </TabsContent>
-          <TabsContent value="forgot">
+          )}
+          {tab === "forgot" && (
             <form onSubmit={handleForgot} className="mt-6 space-y-4">
               <p className="text-sm text-muted-foreground">Enter your account email and we'll send a secure reset link.</p>
               <div className="space-y-2"><Label htmlFor="femail">Email</Label><Input id="femail" name="email" type="email" required maxLength={255} /></div>
               <Button type="submit" className="w-full bg-navy-gradient text-primary-foreground">Send reset link</Button>
             </form>
-          </TabsContent>
-        </Tabs>
+          )}
       </Card>
     </div>
   );
