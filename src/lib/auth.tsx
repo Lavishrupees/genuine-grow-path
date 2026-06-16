@@ -64,41 +64,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async (uid: string) => {
-    const [{ data: authUser }] = await Promise.all([supabase.auth.getUser()]);
-    const [{ data: profile, error: profileError }, { data: roles, error: rolesError }, { data: txs, error: txError }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", uid),
-      supabase.from("transactions").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(50),
-    ]);
+    const { data: authUser, error: authError } = await supabase.auth.getUser();
+    if (authError) throw new Error(authError.message);
+
+    let { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", uid)
+      .maybeSingle();
     if (profileError) throw new Error(profileError.message);
-    if (rolesError) throw new Error(rolesError.message);
-    if (txError) throw new Error(txError.message);
+
     if (!profile) {
       const fallback = authUser.user;
       if (!fallback) { setUser(null); setIsAdmin(false); return; }
       const name = String(fallback.user_metadata?.name || fallback.email?.split("@")[0] || "Investor");
       const { data: created, error } = await supabase
         .from("profiles")
-        .insert({ id: uid, name, email: fallback.email ?? "" })
+        .upsert({ id: uid, name, email: fallback.email ?? "" }, { onConflict: "id" })
         .select("*")
         .single();
       if (error) throw new Error(error.message);
-      setIsAdmin(false);
-      setUser({
-        id: created.id,
-        name: created.name || created.email?.split("@")[0] || "Investor",
-        email: created.email,
-        plan: (created.plan as PlanName) ?? "Starter",
-        balance: Number(created.balance ?? 0),
-        invested: Number(created.invested ?? 0),
-        totalDeposits: Number(created.total_deposits ?? 0),
-        totalWithdrawals: Number(created.total_withdrawals ?? 0),
-        verified: !!created.verified,
-        twoFactor: !!created.two_factor,
-        history: [],
-      });
-      return;
+      profile = created;
     }
+
+    const [{ data: roles, error: rolesError }, { data: txs, error: txError }] = await Promise.all([
+      supabase.from("user_roles").select("role").eq("user_id", uid),
+      supabase.from("transactions").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(50),
+    ]);
+    if (rolesError) throw new Error(rolesError.message);
+    if (txError) throw new Error(txError.message);
+
     setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
     setUser({
       id: profile.id,
