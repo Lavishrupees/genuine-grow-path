@@ -69,7 +69,7 @@ function Deposit() {
               <TabsList><TabsTrigger value="btc">BTC</TabsTrigger><TabsTrigger value="eth">ETH</TabsTrigger><TabsTrigger value="usdt">USDT (TRC-20)</TabsTrigger></TabsList>
               <TabsContent value="btc" className="mt-4 space-y-3">
                 <Detail label="Network" value="Bitcoin (BTC)" />
-                <Detail label="Wallet address" value="bc1qgenuinedemoaddress0xabc1234567890def" copy />
+                <Detail label="Wallet address" value="bc1qjdypmfjt5plsua4kdzx4f0ggu22uusn7ymz7w3" copy />
               </TabsContent>
               <TabsContent value="eth" className="mt-4 space-y-3">
                 <Detail label="Network" value="Ethereum (ERC-20)" />
