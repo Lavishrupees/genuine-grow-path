@@ -77,7 +77,7 @@ function Deposit() {
               </TabsContent>
               <TabsContent value="usdt" className="mt-4 space-y-3">
                 <Detail label="Network" value="Tether USDT (TRC-20)" />
-                <Detail label="Wallet address" value="TGenuineDemoTronAddress1234567890XYZ" copy />
+                <Detail label="Wallet address" value="TQn9Y2khEsLJW1ChVWFMSMeRDow5oREqjK" copy />
               </TabsContent>
             </Tabs>
             <Detail label="Memo / tag" value={user.id.slice(0,8).toUpperCase()} copy />
