@@ -64,7 +64,7 @@ function Security() {
               {user.verified ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300"><BadgeCheck className="h-3 w-3" /> Verified</span>
               ) : (
-                <Button onClick={() => { update({ verified: true }); toast.success("Demo verification complete"); }} className="bg-gold-gradient text-gold-foreground">Start verification</Button>
+                <Button onClick={() => { update({ verified: true }); toast.success("Verification complete"); }} className="bg-gold-gradient text-gold-foreground">Start verification</Button>
               )}
             </div>
           </div>
