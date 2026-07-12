@@ -177,7 +177,7 @@ function Home() {
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
         <div className="overflow-hidden rounded-3xl bg-navy-gradient p-10 text-center text-primary-foreground sm:p-14">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Start investing in minutes</h2>
-          <p className="mx-auto mt-3 max-w-xl text-white/75">Open an account, complete verification, and explore the demo plans risk-free.</p>
+          <p className="mx-auto mt-3 max-w-xl text-white/75">Open an account, complete verification, and start investing today.</p>
           <Button asChild size="lg" className="mt-7 bg-gold-gradient text-gold-foreground shadow-gold"><Link to="/auth">Create account <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
         </div>
       </section>
