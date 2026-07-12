@@ -12,7 +12,7 @@ export const Route = createFileRoute("/")({
       { title: "Genuine Investment — Together we succeed" },
       { name: "description", content: "Trusted investment platform offering plans across stocks, crypto and long-term portfolios. Together we succeed." },
       { property: "og:title", content: "Genuine Investment — Together we succeed" },
-      { property: "og:description", content: "Trusted investment platform offering plans across stocks, crypto and long-term portfolios." },
+      { property: "og:description", content: "Trusted investment platform offering plans across stocks, crypto and long-term portfolios. Together we succeed." },
     ],
   }),
   component: Home,
