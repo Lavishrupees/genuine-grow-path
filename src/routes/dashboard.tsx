@@ -99,7 +99,7 @@ function Dashboard() {
       {/* Plans */}
       <div className="mt-10">
         <h2 className="font-display text-2xl font-bold">Investment plans</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Switch your active plan anytime — figures are illustrative.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Switch your active plan anytime.</p>
         <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {PLANS.map(p => {
             const active = user.plan === p.name;
