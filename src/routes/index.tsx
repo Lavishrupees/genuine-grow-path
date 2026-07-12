@@ -130,7 +130,7 @@ function Home() {
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <h2 className="font-display text-3xl font-bold sm:text-4xl">Investment plans</h2>
-              <p className="mt-2 text-muted-foreground">Pick a tier that matches your goals — all figures are illustrative.</p>
+              <p className="mt-2 text-muted-foreground">Pick a tier that matches your goals.</p>
             </div>
             <Button asChild variant="ghost"><Link to="/dashboard">Compare in dashboard <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
