@@ -72,9 +72,9 @@ function Dashboard() {
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="min-w-0">
             <h2 className="font-display text-xl font-semibold">Portfolio growth</h2>
-            <p className="text-sm text-muted-foreground">Simulated 30-day performance vs. benchmark.</p>
+            <p className="text-sm text-muted-foreground">30-day performance vs. benchmark.</p>
           </div>
-          <Badge variant="outline" className="shrink-0">Demo</Badge>
+
         </div>
         <div className="mt-4 h-72">
           <ResponsiveContainer width="100%" height="100%">
