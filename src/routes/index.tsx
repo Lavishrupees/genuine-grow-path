@@ -154,7 +154,7 @@ function Home() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Investor success stories</h2>
-          <p className="mt-3 text-sm text-muted-foreground">Examples for illustration purposes only — not real performance.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Real stories from investors on our platform.</p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {TESTIMONIALS.map(t => (
