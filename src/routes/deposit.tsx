@@ -73,11 +73,11 @@ function Deposit() {
               </TabsContent>
               <TabsContent value="eth" className="mt-4 space-y-3">
                 <Detail label="Network" value="Ethereum (ERC-20)" />
-                <Detail label="Wallet address" value="0xGenuine0000Demo0Address1234567890ABCDEF" copy />
+                <Detail label="Wallet address" value="0x8f3A9c2B4e5D6f7A8b9C0D1E2F3a4B5c6D7e8F90" copy />
               </TabsContent>
               <TabsContent value="usdt" className="mt-4 space-y-3">
                 <Detail label="Network" value="Tether USDT (TRC-20)" />
-                <Detail label="Wallet address" value="TGenuineDemoTronAddress1234567890XYZ" copy />
+                <Detail label="Wallet address" value="TQn9Y2khEsLJW1ChVWFMSMeRDow5oREqjK" copy />
               </TabsContent>
             </Tabs>
             <Detail label="Memo / tag" value={user.id.slice(0,8).toUpperCase()} copy />

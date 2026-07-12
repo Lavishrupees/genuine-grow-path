@@ -57,7 +57,7 @@ function Home() {
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-elegant backdrop-blur">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
                 <div className="min-w-0">
-                  <div className="text-xs uppercase tracking-wider text-white/60">Portfolio</div>
+                  <div className="text-xs uppercase tracking-wider text-white/60">Portfolio Overview</div>
                   <div className="truncate font-display text-3xl font-bold">$13,847.21</div>
                 </div>
                 <span className="shrink-0 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-300">+38.4%</span>

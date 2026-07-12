@@ -29,7 +29,7 @@ export function Footer() {
           <FooterCol title="Legal" links={[["/faq","Risk Disclosure"],["/faq","Terms"],["/faq","Privacy"]]} />
         </div>
         <div className="mt-10 border-t border-white/10 pt-6 text-xs text-white/60">
-          <p>© {new Date().getFullYear()} Genuine Investment. All rights reserved.</p>
+          <p>© 2026 Genuine Investment. All Rights Reserved.</p>
         </div>
       </div>
     </footer>
