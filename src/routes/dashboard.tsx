@@ -163,7 +163,7 @@ function ProfitCalculator() {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2"><Calculator className="h-5 w-5 text-gold" /><h2 className="font-display text-xl font-semibold">Profit calculator</h2></div>
-      <p className="text-sm text-muted-foreground">Estimate compounding returns by plan. Demo figures only.</p>
+      <p className="text-sm text-muted-foreground">Estimate compounding returns by plan.</p>
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         <div className="space-y-2"><Label>Amount ($)</Label><Input type="number" min={100} value={amount} onChange={e => setAmount(Math.max(0, Number(e.target.value) || 0))} /></div>
         <div className="space-y-2"><Label>Days</Label><Input type="number" min={1} max={365} value={days} onChange={e => setDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)))} /></div>
