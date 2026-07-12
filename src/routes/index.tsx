@@ -107,7 +107,7 @@ function Home() {
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { icon: BarChart3, title: "Portfolio tracking", desc: "Real-time charts, allocation insights and goal progress at a glance." },
-            { icon: TrendingUp, title: "Demo plans", desc: "Four tiers from Starter to VIP — model returns before committing capital." },
+            { icon: TrendingUp, title: "Investment plans", desc: "Four tiers from Starter to VIP — pick the strategy that fits your goals." },
             { icon: GraduationCap, title: "Education library", desc: "Stocks, crypto, ETFs and long-term investing — guided by experts." },
             { icon: ShieldCheck, title: "Bank-grade security", desc: "TLS 1.3, 2FA, KYC verification and segregated custody." },
             { icon: Lock, title: "Easy deposits", desc: "Bank transfer, debit card or crypto wallet — fund in minutes." },
