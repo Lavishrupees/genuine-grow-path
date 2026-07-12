@@ -63,7 +63,7 @@ function Dashboard() {
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Portfolio value" value={`$${current.toLocaleString()}`} hint={`${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`} positive={pct >= 0} />
         <Stat label="Daily profit (est.)" value={`$${Math.max(0, Math.round(current * 0.012)).toLocaleString()}`} hint="At current ROI" positive />
-        <Stat label="Benchmark" value={`$${benchmark.toLocaleString()}`} hint="S&P-style demo" />
+        <Stat label="Benchmark" value={`$${benchmark.toLocaleString()}`} hint="S&P index" />
         <Stat label="Plan tier" value={user.plan} hint={`From $${PLANS.find(p => p.name === user.plan)?.min.toLocaleString()}`} />
       </div>
 
