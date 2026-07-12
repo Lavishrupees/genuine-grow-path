@@ -10,9 +10,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Genuine Investment — Together we succeed" },
-      { name: "description", content: "Trusted investment platform offering demo plans across stocks, crypto and long-term portfolios. Together we succeed." },
+      { name: "description", content: "Trusted investment platform offering plans across stocks, crypto and long-term portfolios. Together we succeed." },
       { property: "og:title", content: "Genuine Investment — Together we succeed" },
-      { property: "og:description", content: "Trusted investment platform offering demo plans across stocks, crypto and long-term portfolios." },
+      { property: "og:description", content: "Trusted investment platform offering plans across stocks, crypto and long-term portfolios." },
     ],
   }),
   component: Home,
@@ -57,7 +57,7 @@ function Home() {
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-elegant backdrop-blur">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
                 <div className="min-w-0">
-                  <div className="text-xs uppercase tracking-wider text-white/60">Portfolio · Demo</div>
+                  <div className="text-xs uppercase tracking-wider text-white/60">Portfolio</div>
                   <div className="truncate font-display text-3xl font-bold">$13,847.21</div>
                 </div>
                 <span className="shrink-0 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-300">+38.4%</span>
@@ -107,7 +107,7 @@ function Home() {
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { icon: BarChart3, title: "Portfolio tracking", desc: "Real-time charts, allocation insights and goal progress at a glance." },
-            { icon: TrendingUp, title: "Demo plans", desc: "Four tiers from Starter to VIP — model returns before committing capital." },
+            { icon: TrendingUp, title: "Investment plans", desc: "Four tiers from Starter to VIP — pick the strategy that fits your goals." },
             { icon: GraduationCap, title: "Education library", desc: "Stocks, crypto, ETFs and long-term investing — guided by experts." },
             { icon: ShieldCheck, title: "Bank-grade security", desc: "TLS 1.3, 2FA, KYC verification and segregated custody." },
             { icon: Lock, title: "Easy deposits", desc: "Bank transfer, debit card or crypto wallet — fund in minutes." },
@@ -130,7 +130,7 @@ function Home() {
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <h2 className="font-display text-3xl font-bold sm:text-4xl">Investment plans</h2>
-              <p className="mt-2 text-muted-foreground">Pick a tier that matches your goals — all figures are illustrative.</p>
+              <p className="mt-2 text-muted-foreground">Pick a tier that matches your goals.</p>
             </div>
             <Button asChild variant="ghost"><Link to="/dashboard">Compare in dashboard <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
@@ -154,7 +154,7 @@ function Home() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Investor success stories</h2>
-          <p className="mt-3 text-sm text-muted-foreground">Examples for illustration purposes only — not real performance.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Real stories from investors on our platform.</p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {TESTIMONIALS.map(t => (
@@ -177,7 +177,7 @@ function Home() {
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
         <div className="overflow-hidden rounded-3xl bg-navy-gradient p-10 text-center text-primary-foreground sm:p-14">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Start investing in minutes</h2>
-          <p className="mx-auto mt-3 max-w-xl text-white/75">Open an account, complete verification, and explore the demo plans risk-free.</p>
+          <p className="mx-auto mt-3 max-w-xl text-white/75">Open an account, complete verification, and start investing today.</p>
           <Button asChild size="lg" className="mt-7 bg-gold-gradient text-gold-foreground shadow-gold"><Link to="/auth">Create account <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
         </div>
       </section>

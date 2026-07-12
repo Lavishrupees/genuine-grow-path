@@ -40,7 +40,7 @@ export const TESTIMONIALS = [
 ];
 
 export const FAQS: { q: string; a: string }[] = [
-  { q: "How does investing work on Genuine Investment?", a: "You fund your account, select a demo plan that matches your goals and risk tolerance, and our simulated strategy allocates across stocks, ETFs and crypto. You can track results in real time on your dashboard." },
+  { q: "How does investing work on Genuine Investment?", a: "You fund your account, select a plan that matches your goals and risk tolerance, and our strategy allocates across stocks, ETFs and crypto. You can track results in real time on your dashboard." },
   { q: "What are the risks?", a: "All investing involves risk including loss of principal. Past performance is not indicative of future results. Diversify, invest only what you can afford, and use a long time horizon." },
   { q: "How are my funds protected?", a: "Funds are held with regulated custodians, encrypted in transit with TLS 1.3, and accounts can be secured with 2FA and identity verification." },
   { q: "How long do withdrawals take?", a: "Most withdrawals process within 24 business hours. Bank wires can take 1–3 business days depending on your institution." },

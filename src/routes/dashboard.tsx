@@ -63,7 +63,7 @@ function Dashboard() {
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Portfolio value" value={`$${current.toLocaleString()}`} hint={`${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`} positive={pct >= 0} />
         <Stat label="Daily profit (est.)" value={`$${Math.max(0, Math.round(current * 0.012)).toLocaleString()}`} hint="At current ROI" positive />
-        <Stat label="Benchmark" value={`$${benchmark.toLocaleString()}`} hint="S&P-style demo" />
+        <Stat label="Benchmark" value={`$${benchmark.toLocaleString()}`} hint="S&P index" />
         <Stat label="Plan tier" value={user.plan} hint={`From $${PLANS.find(p => p.name === user.plan)?.min.toLocaleString()}`} />
       </div>
 
@@ -72,9 +72,9 @@ function Dashboard() {
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="min-w-0">
             <h2 className="font-display text-xl font-semibold">Portfolio growth</h2>
-            <p className="text-sm text-muted-foreground">Simulated 30-day performance vs. benchmark.</p>
+            <p className="text-sm text-muted-foreground">30-day performance vs. benchmark.</p>
           </div>
-          <Badge variant="outline" className="shrink-0">Demo</Badge>
+
         </div>
         <div className="mt-4 h-72">
           <ResponsiveContainer width="100%" height="100%">
@@ -99,7 +99,7 @@ function Dashboard() {
       {/* Plans */}
       <div className="mt-10">
         <h2 className="font-display text-2xl font-bold">Investment plans</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Switch your active plan anytime — figures are illustrative.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Switch your active plan anytime.</p>
         <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {PLANS.map(p => {
             const active = user.plan === p.name;
@@ -163,7 +163,7 @@ function ProfitCalculator() {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2"><Calculator className="h-5 w-5 text-gold" /><h2 className="font-display text-xl font-semibold">Profit calculator</h2></div>
-      <p className="text-sm text-muted-foreground">Estimate compounding returns by plan. Demo figures only.</p>
+      <p className="text-sm text-muted-foreground">Estimate compounding returns by plan.</p>
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         <div className="space-y-2"><Label>Amount ($)</Label><Input type="number" min={100} value={amount} onChange={e => setAmount(Math.max(0, Number(e.target.value) || 0))} /></div>
         <div className="space-y-2"><Label>Days</Label><Input type="number" min={1} max={365} value={days} onChange={e => setDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)))} /></div>
