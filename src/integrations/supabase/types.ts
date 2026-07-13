@@ -14,29 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          is_offline: boolean
+          last_message_at: string
+          last_message_preview: string | null
+          status: string
+          unread_admin: number
+          unread_user: number
+          updated_at: string
+          user_id: string | null
+          visitor_email: string
+          visitor_name: string
+          visitor_token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_offline?: boolean
+          last_message_at?: string
+          last_message_preview?: string | null
+          status?: string
+          unread_admin?: number
+          unread_user?: number
+          updated_at?: string
+          user_id?: string | null
+          visitor_email: string
+          visitor_name: string
+          visitor_token?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_offline?: boolean
+          last_message_at?: string
+          last_message_preview?: string | null
+          status?: string
+          unread_admin?: number
+          unread_user?: number
+          updated_at?: string
+          user_id?: string | null
+          visitor_email?: string
+          visitor_name?: string
+          visitor_token?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           body: string
+          conversation_id: string
           created_at: string
+          delivered_at: string | null
           id: string
+          seen_at: string | null
           sender: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           body: string
+          conversation_id: string
           created_at?: string
+          delivered_at?: string | null
           id?: string
+          seen_at?: string | null
           sender: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           body?: string
+          conversation_id?: string
           created_at?: string
+          delivered_at?: string | null
           id?: string
+          seen_at?: string | null
           sender?: string
-          user_id?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -148,6 +213,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_conversation: { Args: { _cid: string }; Returns: boolean }
+      chat_mark_read_admin: { Args: { _cid: string }; Returns: undefined }
+      chat_mark_read_visitor: { Args: { _cid: string }; Returns: undefined }
+      chat_set_status: {
+        Args: { _cid: string; _status: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -155,6 +227,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
