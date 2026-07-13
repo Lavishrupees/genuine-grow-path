@@ -62,11 +62,22 @@ function AdminPage() {
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
+  const unreadTotal = useMemo(
+    () => conversations.reduce((a, c) => a + (c.unread_admin ?? 0), 0),
+    [conversations],
+  );
+  const prevUnreadRef = useRef(0);
+  useEffect(() => {
+    if (unreadTotal > prevUnreadRef.current) playChime();
+    prevUnreadRef.current = unreadTotal;
+  }, [unreadTotal]);
+
   useEffect(() => {
     if (!isAdmin) return;
     const ch = supabase.channel("admin-feed")
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_messages" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "chat_conversations" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
