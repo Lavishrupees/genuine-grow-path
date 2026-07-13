@@ -1,13 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ShieldCheck, Users as UsersIcon, Receipt, MessageSquare, Send } from "lucide-react";
+import { ShieldCheck, Users as UsersIcon, Receipt, MessageSquare, Send, Search, CheckCircle2, RotateCcw, CheckCheck, Check } from "lucide-react";
+import { playChime, isSupportOnline, formatTime } from "@/lib/chat-support";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Genuine Investment" }] }),
@@ -23,7 +25,16 @@ type TxRow = {
   id: string; user_id: string; type: string; method: string | null;
   amount: number; status: string; reference: string | null; created_at: string;
 };
-type ChatRow = { id: string; user_id: string; sender: string; body: string; created_at: string };
+type Conversation = {
+  id: string; user_id: string | null; visitor_name: string; visitor_email: string;
+  status: "open" | "resolved"; is_offline: boolean;
+  last_message_at: string; last_message_preview: string | null;
+  unread_admin: number; unread_user: number; created_at: string;
+};
+type ChatMsg = {
+  id: string; conversation_id: string; sender: "user" | "agent" | "system";
+  body: string; created_at: string; delivered_at: string | null; seen_at: string | null;
+};
 
 function AdminPage() {
   const { isAdmin, loading, session } = useAuth();
@@ -36,17 +47,17 @@ function AdminPage() {
 
   const [users, setUsers] = useState<ProfileRow[]>([]);
   const [txs, setTxs] = useState<TxRow[]>([]);
-  const [chats, setChats] = useState<ChatRow[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   const load = useCallback(async () => {
     const [u, t, c] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("chat_messages").select("*").order("created_at", { ascending: false }).limit(500),
+      supabase.from("chat_conversations").select("*").order("last_message_at", { ascending: false }).limit(500),
     ]);
     setUsers((u.data ?? []) as ProfileRow[]);
     setTxs((t.data ?? []) as TxRow[]);
-    setChats((c.data ?? []) as ChatRow[]);
+    setConversations((c.data ?? []) as Conversation[]);
   }, []);
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
