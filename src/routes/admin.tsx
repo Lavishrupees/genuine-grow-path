@@ -129,7 +129,7 @@ function AdminPage() {
         <Stat label="Total users" value={users.length} icon={UsersIcon} />
         <Stat label="Pending deposits" value={txs.filter(t => t.type === "deposit" && t.status === "pending").length} icon={Receipt} />
         <Stat label="Pending withdrawals" value={txs.filter(t => t.type === "withdraw" && t.status === "pending").length} icon={Receipt} />
-        <Stat label="Chats today" value={chats.filter(c => new Date(c.created_at).toDateString() === new Date().toDateString()).length} icon={MessageSquare} />
+        <Stat label="Chats today" value={conversations.filter(c => new Date(c.created_at).toDateString() === new Date().toDateString()).length} icon={MessageSquare} badge={unreadTotal} />
       </div>
 
       <Tabs defaultValue="transactions" className="mt-8">
