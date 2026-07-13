@@ -136,7 +136,12 @@ function AdminPage() {
         <TabsList>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="chat">Support chats</TabsTrigger>
+          <TabsTrigger value="chat" className="relative">
+            Support chats
+            {unreadTotal > 0 && (
+              <Badge className="ml-2 h-5 min-w-5 bg-destructive px-1.5 text-xs text-destructive-foreground">{unreadTotal}</Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="transactions" className="mt-4">
