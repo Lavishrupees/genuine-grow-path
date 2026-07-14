@@ -97,15 +97,25 @@ export function ChatWidget() {
   useEffect(() => {
     if (!client || !conversationId) return;
     let cancelled = false;
-    client
-      .from("chat_messages")
-      .select("*")
-      .eq("conversation_id", conversationId)
-      .order("created_at")
-      .then(({ data }) => {
-        if (cancelled) return;
-        setMsgs((data ?? []) as Msg[]);
-      });
+    const refetch = () => {
+      client
+        .from("chat_messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at")
+        .then(({ data }) => {
+          if (cancelled || !data) return;
+          setMsgs((prev) => {
+            // merge — preserve order, replace by id
+            const map = new Map(prev.map((m) => [m.id, m]));
+            for (const m of data as Msg[]) map.set(m.id, m);
+            return Array.from(map.values()).sort((a, b) => a.created_at.localeCompare(b.created_at));
+          });
+        });
+    };
+    refetch();
+    // Polling fallback ensures anon visitors and admins see new messages even if realtime is delayed
+    const poll = window.setInterval(refetch, 3500);
 
     const ch = client
       .channel(`chat:${conversationId}`)
@@ -136,6 +146,7 @@ export function ChatWidget() {
 
     return () => {
       cancelled = true;
+      window.clearInterval(poll);
       client.removeChannel(ch);
       if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
     };
@@ -188,15 +199,16 @@ export function ChatWidget() {
     if (!body || !client || !conversationId) return;
     setSending(true);
     setText("");
-    const { error } = await client.from("chat_messages").insert({
+    const { data, error } = await client.from("chat_messages").insert({
       conversation_id: conversationId,
       user_id: session?.user?.id ?? null,
       sender: "user",
       body: body.slice(0, 2000),
       delivered_at: new Date().toISOString(),
-    });
+    }).select("*").single();
     setSending(false);
-    if (error) setText(body);
+    if (error || !data) { setText(body); return; }
+    setMsgs((prev) => (prev.some((x) => x.id === data.id) ? prev : [...prev, data as Msg]));
   };
 
   const onType = () => {
