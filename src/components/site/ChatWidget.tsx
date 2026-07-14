@@ -146,6 +146,7 @@ export function ChatWidget() {
 
     return () => {
       cancelled = true;
+      window.clearInterval(poll);
       client.removeChannel(ch);
       if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
     };
