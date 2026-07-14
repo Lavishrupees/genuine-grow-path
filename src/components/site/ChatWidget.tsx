@@ -97,15 +97,25 @@ export function ChatWidget() {
   useEffect(() => {
     if (!client || !conversationId) return;
     let cancelled = false;
-    client
-      .from("chat_messages")
-      .select("*")
-      .eq("conversation_id", conversationId)
-      .order("created_at")
-      .then(({ data }) => {
-        if (cancelled) return;
-        setMsgs((data ?? []) as Msg[]);
-      });
+    const refetch = () => {
+      client
+        .from("chat_messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at")
+        .then(({ data }) => {
+          if (cancelled || !data) return;
+          setMsgs((prev) => {
+            // merge — preserve order, replace by id
+            const map = new Map(prev.map((m) => [m.id, m]));
+            for (const m of data as Msg[]) map.set(m.id, m);
+            return Array.from(map.values()).sort((a, b) => a.created_at.localeCompare(b.created_at));
+          });
+        });
+    };
+    refetch();
+    // Polling fallback ensures anon visitors and admins see new messages even if realtime is delayed
+    const poll = window.setInterval(refetch, 3500);
 
     const ch = client
       .channel(`chat:${conversationId}`)
