@@ -188,15 +188,16 @@ export function ChatWidget() {
     if (!body || !client || !conversationId) return;
     setSending(true);
     setText("");
-    const { error } = await client.from("chat_messages").insert({
+    const { data, error } = await client.from("chat_messages").insert({
       conversation_id: conversationId,
       user_id: session?.user?.id ?? null,
       sender: "user",
       body: body.slice(0, 2000),
       delivered_at: new Date().toISOString(),
-    });
+    }).select("*").single();
     setSending(false);
-    if (error) setText(body);
+    if (error || !data) { setText(body); return; }
+    setMsgs((prev) => (prev.some((x) => x.id === data.id) ? prev : [...prev, data as Msg]));
   };
 
   const onType = () => {
