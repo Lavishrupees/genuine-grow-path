@@ -1,21 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MessageCircle, X, Send, CheckCheck, Check, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, CheckCheck, Check, Loader2, LogIn, UserPlus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
-import { supabase as authSupabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "@tanstack/react-router";
 import {
-  createVisitorClient,
-  getVisitorToken,
   getSavedConversationId,
   saveConversationId,
   clearConversation,
-  getSavedIdentity,
-  saveIdentity,
   isSupportOnline,
   formatTime,
 } from "@/lib/chat-support";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 type Msg = {
   id: string;
@@ -28,11 +24,9 @@ type Msg = {
 };
 
 export function ChatWidget() {
-  const { session } = useAuth();
+  const { session, user, loading } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<"intro" | "chat">("intro");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
@@ -43,62 +37,81 @@ export function ChatWidget() {
   const endRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<number | null>(null);
 
-  const visitorToken = useMemo(() => (typeof window === "undefined" ? "" : getVisitorToken()), []);
-  const client = useMemo<SupabaseClient | null>(() => {
-    if (typeof window === "undefined") return null;
-    return session ? authSupabase : createVisitorClient(visitorToken);
-  }, [session, visitorToken]);
+  const isAuthed = !!session?.user;
 
-  // support hours ticker
   useEffect(() => {
     const t = setInterval(() => setSupportOnline(isSupportOnline()), 60_000);
     return () => clearInterval(t);
   }, []);
 
-  // Prefill identity
+  // Restore existing conversation for signed-in user
   useEffect(() => {
-    if (session?.user) {
-      const meta = (session.user.user_metadata ?? {}) as { name?: string };
-      setName(meta.name ?? session.user.email ?? "");
-      setEmail(session.user.email ?? "");
-    } else {
-      const saved = getSavedIdentity();
-      if (saved) { setName(saved.name); setEmail(saved.email); }
+    if (!isAuthed || !session?.user) {
+      setConversationId(null);
+      setMsgs([]);
+      return;
     }
-  }, [session]);
-
-  // Restore existing conversation
-  useEffect(() => {
-    if (!client) return;
     let cancelled = false;
     (async () => {
-      if (session?.user) {
-        const { data } = await client
-          .from("chat_conversations")
-          .select("id")
-          .eq("user_id", session.user.id)
-          .order("last_message_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (!cancelled && data?.id) { setConversationId(data.id); setStep("chat"); }
-      } else {
-        const saved = getSavedConversationId();
-        if (saved) {
-          const { data } = await client.from("chat_conversations").select("id").eq("id", saved).maybeSingle();
-          if (!cancelled && data?.id) { setConversationId(data.id); setStep("chat"); }
-          else if (!cancelled) clearConversation();
-        }
+      const { data } = await supabase
+        .from("chat_conversations")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .order("last_message_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled && data?.id) {
+        setConversationId(data.id);
+        saveConversationId(data.id);
+      } else if (!cancelled) {
+        // clear stale guest conversation id
+        clearConversation();
       }
     })();
     return () => { cancelled = true; };
-  }, [client, session]);
+  }, [isAuthed, session?.user]);
+
+  // Auto-create a conversation once authenticated user opens the widget
+  const ensureConversation = async () => {
+    if (!session?.user || !user || conversationId || starting) return;
+    setStarting(true);
+    const { data, error } = await supabase
+      .from("chat_conversations")
+      .insert({
+        user_id: session.user.id,
+        visitor_name: user.name.slice(0, 80),
+        visitor_email: user.email.slice(0, 120),
+        visitor_token: undefined,
+        is_offline: !supportOnline,
+      })
+      .select("id")
+      .single();
+    setStarting(false);
+    if (error || !data) return;
+    saveConversationId(data.id);
+    setConversationId(data.id);
+    if (!supportOnline) {
+      await supabase.from("chat_messages").insert({
+        conversation_id: data.id,
+        sender: "system",
+        body: `We're currently offline. We'll reply to ${user.email} by email as soon as we're back.`,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (open && isAuthed && !conversationId && !starting) {
+      void ensureConversation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isAuthed, conversationId]);
 
   // Load messages + subscribe
   useEffect(() => {
-    if (!client || !conversationId) return;
+    if (!conversationId || !isAuthed) return;
     let cancelled = false;
     const refetch = () => {
-      client
+      supabase
         .from("chat_messages")
         .select("*")
         .eq("conversation_id", conversationId)
@@ -106,7 +119,6 @@ export function ChatWidget() {
         .then(({ data }) => {
           if (cancelled || !data) return;
           setMsgs((prev) => {
-            // merge — preserve order, replace by id
             const map = new Map(prev.map((m) => [m.id, m]));
             for (const m of data as Msg[]) map.set(m.id, m);
             return Array.from(map.values()).sort((a, b) => a.created_at.localeCompare(b.created_at));
@@ -114,10 +126,9 @@ export function ChatWidget() {
         });
     };
     refetch();
-    // Polling fallback ensures anon visitors and admins see new messages even if realtime is delayed
-    const poll = window.setInterval(refetch, 3500);
+    const poll = window.setInterval(refetch, 4000);
 
-    const ch = client
+    const ch = supabase
       .channel(`chat:${conversationId}`)
       .on(
         "postgres_changes",
@@ -147,61 +158,28 @@ export function ChatWidget() {
     return () => {
       cancelled = true;
       window.clearInterval(poll);
-      client.removeChannel(ch);
+      supabase.removeChannel(ch);
       if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
     };
-  }, [client, conversationId]);
+  }, [conversationId, isAuthed]);
 
-  // mark agent messages as seen when open
   useEffect(() => {
-    if (!open || !client || !conversationId) return;
+    if (!open || !conversationId || !isAuthed) return;
     const hasUnseen = msgs.some((m) => m.sender === "agent" && !m.seen_at);
     if (!hasUnseen) return;
-    client.rpc("chat_mark_read_visitor", { _cid: conversationId }).then(() => { /* noop */ });
-  }, [open, client, conversationId, msgs]);
+    supabase.rpc("chat_mark_read_visitor", { _cid: conversationId });
+  }, [open, conversationId, isAuthed, msgs]);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, open, agentTyping]);
 
-  const startConversation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!client) return;
-    const n = name.trim(); const em = email.trim();
-    if (!n || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return;
-    setStarting(true);
-    const { data, error } = await client
-      .from("chat_conversations")
-      .insert({
-        user_id: session?.user?.id ?? null,
-        visitor_name: n.slice(0, 80),
-        visitor_email: em.slice(0, 120),
-        visitor_token: visitorToken,
-        is_offline: !supportOnline,
-      })
-      .select("id")
-      .single();
-    setStarting(false);
-    if (error || !data) return;
-    if (!session) saveIdentity({ name: n, email: em });
-    saveConversationId(data.id);
-    setConversationId(data.id);
-    setStep("chat");
-    if (!supportOnline) {
-      await client.from("chat_messages").insert({
-        conversation_id: data.id,
-        sender: "system",
-        body: `We're currently offline. We'll reply to ${em} by email as soon as we're back.`,
-      });
-    }
-  };
-
   const send = async () => {
     const body = text.trim();
-    if (!body || !client || !conversationId) return;
+    if (!body || !conversationId || !session?.user) return;
     setSending(true);
     setText("");
-    const { data, error } = await client.from("chat_messages").insert({
+    const { data, error } = await supabase.from("chat_messages").insert({
       conversation_id: conversationId,
-      user_id: session?.user?.id ?? null,
+      user_id: session.user.id,
       sender: "user",
       body: body.slice(0, 2000),
       delivered_at: new Date().toISOString(),
@@ -212,10 +190,30 @@ export function ChatWidget() {
   };
 
   const onType = () => {
-    if (!client || !conversationId) return;
-    const ch = client.channel(`chat:${conversationId}`);
+    if (!conversationId) return;
+    const ch = supabase.channel(`chat:${conversationId}`);
     ch.send({ type: "broadcast", event: "typing", payload: { from: "user" } });
   };
+
+  const goAuth = (mode: "signin" | "signup") => {
+    // Persist intent to auto-open chat after login
+    try { sessionStorage.setItem("gi_open_chat_after_auth", "1"); } catch { /* ignore */ }
+    setOpen(false);
+    navigate({ to: "/auth", search: { mode } as never });
+  };
+
+  // Auto-open chat after login if the user requested it before authenticating
+  useEffect(() => {
+    if (!isAuthed) return;
+    try {
+      if (sessionStorage.getItem("gi_open_chat_after_auth") === "1") {
+        sessionStorage.removeItem("gi_open_chat_after_auth");
+        setOpen(true);
+      }
+    } catch { /* ignore */ }
+  }, [isAuthed]);
+
+  const firstName = user?.name?.split(" ")[0] || "there";
 
   return (
     <>
@@ -240,25 +238,40 @@ export function ChatWidget() {
             </div>
           </div>
 
-          {step === "intro" || !conversationId ? (
-            <form onSubmit={startConversation} className="flex flex-1 flex-col gap-3 p-5">
-              <p className="text-sm text-muted-foreground">
-                {supportOnline
-                  ? "Tell us who you are and we'll be right with you."
-                  : "We're currently offline. Leave your message and we'll reply by email."}
-              </p>
-              <Input placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required />
-              <Input placeholder="Email address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={120} required />
-              <Button type="submit" disabled={starting} className="bg-gold-gradient text-gold-foreground">
-                {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Start chat"}
-              </Button>
-            </form>
+          {loading ? (
+            <div className="flex flex-1 items-center justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : !isAuthed ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-secondary">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="font-semibold">Sign in required</div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Please sign in or create an account to chat with our support team.
+                </p>
+              </div>
+              <div className="flex w-full flex-col gap-2">
+                <Button onClick={() => goAuth("signin")} className="bg-gold-gradient text-gold-foreground">
+                  <LogIn className="mr-2 h-4 w-4" /> Sign In
+                </Button>
+                <Button onClick={() => goAuth("signup")} variant="outline">
+                  <UserPlus className="mr-2 h-4 w-4" /> Create Account
+                </Button>
+              </div>
+            </div>
+          ) : !conversationId ? (
+            <div className="flex flex-1 items-center justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
           ) : (
             <>
               <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
                 {msgs.length === 0 && (
                   <div className="rounded-xl rounded-bl-sm bg-secondary px-3 py-2 text-sm">
-                    Hi {name?.split(" ")[0] || "there"}! How can we help today?
+                    Hi {firstName}! How can we help today?
                   </div>
                 )}
                 {msgs.map((m) => {
