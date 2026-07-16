@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { ShieldCheck } from "lucide-react";
+import { Logo } from "@/components/site/Logo";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -86,6 +87,9 @@ function AuthPage() {
         </ul>
       </div>
       <Card className="p-6 sm:p-8">
+        <div className="mb-6 flex justify-center">
+          <Logo imgClassName="h-14 w-auto animate-logo-fade-in" priority />
+        </div>
         <div className="grid w-full grid-cols-3 rounded-lg bg-muted p-1 text-muted-foreground">
           {(["signin", "signup", "forgot"] as const).map((value) => (
             <button
