@@ -81,7 +81,7 @@ export function ChatWidget() {
         user_id: session.user.id,
         visitor_name: user.name.slice(0, 80),
         visitor_email: user.email.slice(0, 120),
-        visitor_token: null,
+        visitor_token: undefined,
         is_offline: !supportOnline,
       })
       .select("id")
