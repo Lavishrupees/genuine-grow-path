@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { PLANS, TESTIMONIALS, buildSeries } from "@/lib/data";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import hero from "@/assets/hero.jpg";
+import { LOGO_URL } from "@/components/site/Logo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,6 +29,18 @@ function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.18),transparent_60%)]" />
         <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:py-28">
           <div>
+            <div className="relative mb-8 flex items-center justify-center lg:justify-start">
+              <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 h-72 w-72 -translate-x-1/2 animate-spotlight-in rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.35),transparent_60%)] blur-2xl lg:left-40" />
+              <img
+                src={LOGO_URL}
+                alt="Genuine Investment — Together we succeed"
+                width={360}
+                height={360}
+                fetchPriority="high"
+                decoding="async"
+                className="relative h-40 w-auto animate-logo-fade-in drop-shadow-[0_18px_40px_rgba(0,0,0,0.45)] sm:h-48 lg:h-56"
+              />
+            </div>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs uppercase tracking-wider text-gold">
               <Sparkles className="h-3 w-3" /> Trusted by 120,000+ investors
             </span>
