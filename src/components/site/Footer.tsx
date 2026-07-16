@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { ShieldCheck, Lock, BadgeCheck, Phone, Mail } from "lucide-react";
+import { Lock, BadgeCheck, Phone, Mail } from "lucide-react";
 import { CONTACT } from "@/lib/contact";
+import { Logo } from "@/components/site/Logo";
 
 export function Footer() {
   return (
@@ -8,11 +9,8 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-md bg-white/10 text-gold">
-                <ShieldCheck className="h-5 w-5" />
-              </span>
-              <span className="font-display text-lg font-semibold">Genuine Investment</span>
+            <div className="rounded-lg bg-white/95 p-3 inline-block shadow-elegant">
+              <Logo imgClassName="h-12 w-auto" />
             </div>
             <p className="mt-4 text-sm text-white/70">Together we succeed. Premium-grade investing tools, education and security for the long term.</p>
             <ul className="mt-4 space-y-1.5 text-sm">

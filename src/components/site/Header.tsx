@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, ShieldCheck, Phone, Mail } from "lucide-react";
+import { Menu, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { CONTACT } from "@/lib/contact";
+import { Logo } from "@/components/site/Logo";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -34,14 +35,8 @@ export function Header() {
       </div>
 
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to="/" className="flex min-w-0 items-center gap-2">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-navy-gradient text-gold">
-            <ShieldCheck className="h-5 w-5" />
-          </span>
-          <span className="truncate font-display text-lg font-semibold tracking-tight">
-            Genuine <span className="text-gold">Investment</span>
-          </span>
-        </Link>
+        <Logo imgClassName="h-10 w-auto sm:h-11" priority />
+        <Link to="/" className="sr-only">Genuine Investment — Home</Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
           {nav.map(n => (
