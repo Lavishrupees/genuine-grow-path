@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { PLANS, TESTIMONIALS, buildSeries } from "@/lib/data";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import hero from "@/assets/hero.jpg";
+import { LOGO_URL } from "@/components/site/Logo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
