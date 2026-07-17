@@ -87,8 +87,8 @@ function AuthPage() {
         </ul>
       </div>
       <Card className="p-6 sm:p-8">
-        <div className="mb-6 flex justify-center">
-          <Logo imgClassName="h-14 w-auto animate-logo-fade-in" priority />
+        <div className="mb-7 flex justify-center pt-2">
+          <Logo imgClassName="h-36 w-auto sm:h-44 animate-logo-fade-in object-contain" priority />
         </div>
         <div className="grid w-full grid-cols-3 rounded-lg bg-muted p-1 text-muted-foreground">
           {(["signin", "signup", "forgot"] as const).map((value) => (
