@@ -23,80 +23,84 @@ function Home() {
   const series = buildSeries(10000, 30);
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-navy-gradient text-primary-foreground">
-        <img src={hero} alt="" width={1920} height={1280} className="absolute inset-0 h-full w-full object-cover opacity-25" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.18),transparent_60%)]" />
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:py-28">
-          <div>
-            <div className="relative mb-8 flex items-center justify-center lg:justify-start">
-              <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 h-72 w-72 -translate-x-1/2 animate-spotlight-in rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.35),transparent_60%)] blur-2xl lg:left-40" />
-              <img
-                src={LOGO_URL}
-                alt="Genuine Investment — Together we succeed"
-                width={360}
-                height={360}
-                fetchPriority="high"
-                decoding="async"
-                className="relative h-40 w-auto animate-logo-fade-in drop-shadow-[0_18px_40px_rgba(0,0,0,0.45)] sm:h-48 lg:h-56"
-              />
-            </div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs uppercase tracking-wider text-gold">
-              <Sparkles className="h-3 w-3" /> Trusted by 120,000+ investors
-            </span>
-            <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] sm:text-5xl lg:text-6xl">
-              Together we <span className="text-gold">succeed</span>.
-            </h1>
-            <p className="mt-5 max-w-xl text-base text-white/75 sm:text-lg">
-              A premium investing platform for stocks, crypto, and long-term portfolios — backed by education, transparency and bank-grade security.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-95">
-                <Link to="/auth">Open free account <ArrowRight className="ml-2 h-4 w-4" /></Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/25 bg-white/5 text-white hover:bg-white/10">
-                <Link to="/education">Explore education</Link>
-              </Button>
-            </div>
-            <div className="mt-10 grid max-w-md grid-cols-3 gap-6 text-sm">
-              {[["$2.4B","Assets tracked"],["120k+","Investors"],["4.9★","App rating"]].map(([n,l]) => (
-                <div key={l}><div className="font-display text-2xl font-bold text-gold">{n}</div><div className="text-white/60">{l}</div></div>
-              ))}
-            </div>
+      {/* Hero — premium centered brand identity */}
+      <section className="relative overflow-hidden bg-white">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(ellipse_at_top,rgba(15,27,61,0.06),transparent_70%)]" />
+        <div aria-hidden className="pointer-events-none absolute left-1/2 top-24 h-[420px] w-[420px] -translate-x-1/2 animate-spotlight-in rounded-full bg-[radial-gradient(circle_at_center,rgba(201,168,76,0.18),transparent_65%)] blur-3xl" />
+        <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 pb-20 pt-16 text-center sm:px-6 sm:pt-20 lg:pt-24">
+          <img
+            src={LOGO_URL}
+            alt="Genuine Investment — Together we succeed"
+            width={720}
+            height={720}
+            fetchPriority="high"
+            decoding="async"
+            className="animate-logo-fade-in h-56 w-auto drop-shadow-[0_20px_45px_rgba(15,27,61,0.18)] sm:h-72 lg:h-96"
+          />
+          <h1 className="mt-8 animate-fade-in font-display text-4xl font-black uppercase tracking-[0.14em] text-[#0f1b3d] sm:text-5xl lg:text-6xl">
+            Genuine Investment
+          </h1>
+          <div className="mt-6 flex w-full max-w-md items-center gap-4 animate-fade-in">
+            <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#c9a84c]/60 to-[#c9a84c]" />
+            <span className="text-xs font-semibold uppercase tracking-[0.35em] text-[#0f1b3d]/80 sm:text-sm">Together We Succeed</span>
+            <span className="h-px flex-1 bg-gradient-to-l from-transparent via-[#c9a84c]/60 to-[#c9a84c]" />
           </div>
+          <div className="mt-8 inline-flex animate-fade-in items-center gap-2 rounded-full border border-[#c9a84c]/40 bg-white px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#0f1b3d] shadow-[0_8px_28px_-12px_rgba(15,27,61,0.35)] sm:text-sm">
+            <Sparkles className="h-4 w-4 text-[#c9a84c]" />
+            <span>Trusted by 120,000+ Investors</span>
+          </div>
+          <p className="mt-8 max-w-2xl animate-fade-in text-base leading-relaxed text-slate-600 sm:text-lg">
+            A premium investing platform for stocks, crypto, and long-term portfolios — backed by education, transparency and bank-grade security.
+          </p>
+          <div className="mt-9 flex flex-wrap justify-center gap-3 animate-fade-in">
+            <Button asChild size="lg" className="bg-[#0f1b3d] text-white hover:bg-[#1e3a5f] shadow-[0_10px_30px_-10px_rgba(15,27,61,0.5)]">
+              <Link to="/auth">Open free account <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="border-[#0f1b3d]/15 bg-white text-[#0f1b3d] hover:bg-[#0f1b3d]/5">
+              <Link to="/education">Explore education</Link>
+            </Button>
+          </div>
+          <div className="mt-14 grid w-full max-w-2xl grid-cols-3 gap-6 animate-fade-in border-t border-[#0f1b3d]/10 pt-8 text-center">
+            {[["$2.4B","Assets tracked"],["120k+","Investors"],["4.9★","App rating"]].map(([n,l]) => (
+              <div key={l}>
+                <div className="font-display text-2xl font-bold text-[#0f1b3d] sm:text-3xl">{n}</div>
+                <div className="mt-1 text-xs uppercase tracking-wider text-slate-500 sm:text-sm">{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          {/* hero chart card */}
-          <div className="relative">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-elegant backdrop-blur">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-                <div className="min-w-0">
-                  <div className="text-xs uppercase tracking-wider text-white/60">Portfolio Overview</div>
-                  <div className="truncate font-display text-3xl font-bold">$13,847.21</div>
-                </div>
-                <span className="shrink-0 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-300">+38.4%</span>
-              </div>
-              <div className="mt-4 h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={series}>
-                    <defs>
-                      <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="oklch(0.82 0.15 88)" stopOpacity={0.55} />
-                        <stop offset="100%" stopColor="oklch(0.82 0.15 88)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="day" hide />
-                    <YAxis hide domain={["dataMin", "dataMax"]} />
-                    <Tooltip contentStyle={{ background: "rgba(20,30,55,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#fff" }} />
-                    <Area type="monotone" dataKey="portfolio" stroke="oklch(0.82 0.15 88)" strokeWidth={2} fill="url(#g1)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs text-white/70">
-                <div><div className="text-white">Stocks</div><div>42%</div></div>
-                <div><div className="text-white">Crypto</div><div>28%</div></div>
-                <div><div className="text-white">Bonds/ETF</div><div>30%</div></div>
-              </div>
+      {/* Portfolio preview */}
+      <section className="mx-auto max-w-5xl px-4 pb-4 sm:px-6">
+        <div className="rounded-2xl border border-[#0f1b3d]/10 bg-white p-5 shadow-[0_20px_60px_-30px_rgba(15,27,61,0.35)]">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+            <div className="min-w-0">
+              <div className="text-xs uppercase tracking-wider text-slate-500">Portfolio Overview</div>
+              <div className="truncate font-display text-3xl font-bold text-[#0f1b3d]">$13,847.21</div>
             </div>
+            <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600">+38.4%</span>
+          </div>
+          <div className="mt-4 h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={series}>
+                <defs>
+                  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#c9a84c" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#c9a84c" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="day" hide />
+                <YAxis hide domain={["dataMin", "dataMax"]} />
+                <Tooltip contentStyle={{ background: "#0f1b3d", border: "none", borderRadius: 8, color: "#fff" }} />
+                <Area type="monotone" dataKey="portfolio" stroke="#c9a84c" strokeWidth={2} fill="url(#g1)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs text-slate-600">
+            <div><div className="font-semibold text-[#0f1b3d]">Stocks</div><div>42%</div></div>
+            <div><div className="font-semibold text-[#0f1b3d]">Crypto</div><div>28%</div></div>
+            <div><div className="font-semibold text-[#0f1b3d]">Bonds/ETF</div><div>30%</div></div>
           </div>
         </div>
       </section>
