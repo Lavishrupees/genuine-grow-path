@@ -9,6 +9,7 @@ import { Logo } from "@/components/site/Logo";
 const nav = [
   { to: "/", label: "Home" },
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/portfolio", label: "Portfolio" },
   { to: "/education", label: "Education" },
   { to: "/about", label: "About" },
   { to: "/security", label: "Security" },
