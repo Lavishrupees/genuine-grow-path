@@ -25,9 +25,10 @@ function Dashboard() {
   useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
   if (!user) return null;
 
-  const current = series[series.length - 1].portfolio;
+  const current = user.portfolio?.value ?? series[series.length - 1].portfolio;
   const benchmark = series[series.length - 1].benchmark;
-  const pct = ((current - series[0].portfolio) / series[0].portfolio) * 100;
+  const pct = user.portfolio?.roi ?? ((current - series[0].portfolio) / series[0].portfolio) * 100;
+  const profit = user.portfolio?.profit;
 
   const selectPlan = async (name: typeof user.plan) => {
     try { await update({ plan: name }); toast.success(`Selected ${name} plan`); }
@@ -61,8 +62,12 @@ function Dashboard() {
         <Stat label="Total withdrawals" value={`$${user.totalWithdrawals.toLocaleString()}`} hint="Lifetime" icon={Receipt} />
       </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Portfolio value" value={`$${current.toLocaleString()}`} hint={`${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`} positive={pct >= 0} />
-        <Stat label="Daily profit (est.)" value={`$${Math.max(0, Math.round(current * 0.012)).toLocaleString()}`} hint="At current ROI" positive />
+        <Stat label="Portfolio value" value={`$${current.toLocaleString()}`} hint={`ROI ${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`} positive={pct >= 0} />
+        {profit !== undefined ? (
+          <Stat label="Total profit" value={`+$${profit.toLocaleString()}`} hint={user.portfolio?.status ?? "Active"} positive />
+        ) : (
+          <Stat label="Daily profit (est.)" value={`$${Math.max(0, Math.round(current * 0.012)).toLocaleString()}`} hint="At current ROI" positive />
+        )}
         <Stat label="Benchmark" value={`$${benchmark.toLocaleString()}`} hint="S&P index" />
         <Stat label="Plan tier" value={user.plan} hint={`From $${PLANS.find(p => p.name === user.plan)?.min.toLocaleString()}`} />
       </div>
