@@ -25,9 +25,10 @@ function Dashboard() {
   useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
   if (!user) return null;
 
-  const current = series[series.length - 1].portfolio;
+  const current = user.portfolio?.value ?? series[series.length - 1].portfolio;
   const benchmark = series[series.length - 1].benchmark;
-  const pct = ((current - series[0].portfolio) / series[0].portfolio) * 100;
+  const pct = user.portfolio?.roi ?? ((current - series[0].portfolio) / series[0].portfolio) * 100;
+  const profit = user.portfolio?.profit;
 
   const selectPlan = async (name: typeof user.plan) => {
     try { await update({ plan: name }); toast.success(`Selected ${name} plan`); }
