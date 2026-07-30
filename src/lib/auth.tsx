@@ -97,18 +97,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (txError) throw new Error(txError.message);
 
     setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
+    const demo = getDemoOverride(profile.email);
     setUser({
       id: profile.id,
-      name: profile.name || profile.email?.split("@")[0] || "Investor",
+      name: demo?.name ?? (profile.name || profile.email?.split("@")[0] || "Investor"),
       email: profile.email,
-      plan: (profile.plan as PlanName) ?? "Starter",
-      balance: Number(profile.balance ?? 0),
-      invested: Number(profile.invested ?? 0),
-      totalDeposits: Number(profile.total_deposits ?? 0),
-      totalWithdrawals: Number(profile.total_withdrawals ?? 0),
-      verified: !!profile.verified,
+      plan: demo?.plan ?? ((profile.plan as PlanName) ?? "Starter"),
+      balance: demo?.balance ?? Number(profile.balance ?? 0),
+      invested: demo?.invested ?? Number(profile.invested ?? 0),
+      totalDeposits: demo?.totalDeposits ?? Number(profile.total_deposits ?? 0),
+      totalWithdrawals: demo?.totalWithdrawals ?? Number(profile.total_withdrawals ?? 0),
+      verified: demo ? demo.verified : !!profile.verified,
       twoFactor: !!profile.two_factor,
       history: (txs ?? []).map(rowToTx),
+      portfolio: demo
+        ? { value: demo.portfolioValue, profit: demo.totalProfit, roi: demo.roi, status: demo.status }
+        : undefined,
     });
   }, []);
 
