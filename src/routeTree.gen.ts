@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WithdrawRouteImport } from './routes/withdraw'
 import { Route as SecurityRouteImport } from './routes/security'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EducationRouteImport } from './routes/education'
 import { Route as DepositRouteImport } from './routes/deposit'
@@ -29,6 +30,11 @@ const WithdrawRoute = WithdrawRouteImport.update({
 const SecurityRoute = SecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/deposit': typeof DepositRoute
   '/education': typeof EducationRoute
   '/faq': typeof FaqRoute
+  '/portfolio': typeof PortfolioRoute
   '/security': typeof SecurityRoute
   '/withdraw': typeof WithdrawRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/deposit': typeof DepositRoute
   '/education': typeof EducationRoute
   '/faq': typeof FaqRoute
+  '/portfolio': typeof PortfolioRoute
   '/security': typeof SecurityRoute
   '/withdraw': typeof WithdrawRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/deposit': typeof DepositRoute
   '/education': typeof EducationRoute
   '/faq': typeof FaqRoute
+  '/portfolio': typeof PortfolioRoute
   '/security': typeof SecurityRoute
   '/withdraw': typeof WithdrawRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/deposit'
     | '/education'
     | '/faq'
+    | '/portfolio'
     | '/security'
     | '/withdraw'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/deposit'
     | '/education'
     | '/faq'
+    | '/portfolio'
     | '/security'
     | '/withdraw'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/deposit'
     | '/education'
     | '/faq'
+    | '/portfolio'
     | '/security'
     | '/withdraw'
   fileRoutesById: FileRoutesById
@@ -169,6 +181,7 @@ export interface RootRouteChildren {
   DepositRoute: typeof DepositRoute
   EducationRoute: typeof EducationRoute
   FaqRoute: typeof FaqRoute
+  PortfolioRoute: typeof PortfolioRoute
   SecurityRoute: typeof SecurityRoute
   WithdrawRoute: typeof WithdrawRoute
 }
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   DepositRoute: DepositRoute,
   EducationRoute: EducationRoute,
   FaqRoute: FaqRoute,
+  PortfolioRoute: PortfolioRoute,
   SecurityRoute: SecurityRoute,
   WithdrawRoute: WithdrawRoute,
 }
