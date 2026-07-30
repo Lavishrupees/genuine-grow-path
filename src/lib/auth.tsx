@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getDemoOverride } from "@/lib/demo-accounts";
 import type { Session } from "@supabase/supabase-js";
 
 export type PlanName = "Starter" | "Silver" | "Gold" | "VIP";
