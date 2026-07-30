@@ -27,6 +27,8 @@ export type User = {
   verified: boolean;
   twoFactor: boolean;
   history: Tx[];
+  /** Present only for demo showcase accounts; overrides computed portfolio figures. */
+  portfolio?: { value: number; profit: number; roi: number; status: string };
 };
 
 type AuthCtx = {
