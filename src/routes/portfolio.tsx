@@ -53,7 +53,7 @@ export type InvestmentRow = {
 
 const SUMMARY: PortfolioSummary = {
   clientName: "Katrina James",
-  amountInvested: 25000,
+  amountInvested: 35000,
   currentValue: 647990,
   totalProfit: 622990,
   roi: 1779.97,
