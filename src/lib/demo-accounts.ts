@@ -24,7 +24,7 @@ const KATRINA: DemoOverride = {
   totalWithdrawals: 0,
   portfolioValue: 657990,
   totalProfit: 622990,
-  roi: 2491.96,
+  roi: 1779.97,
   status: "Active",
 };
 
