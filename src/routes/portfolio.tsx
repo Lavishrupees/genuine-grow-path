@@ -56,7 +56,7 @@ const SUMMARY: PortfolioSummary = {
   amountInvested: 25000,
   currentValue: 647990,
   totalProfit: 622990,
-  roi: 2491.96,
+  roi: 1779.97,
   status: "Active",
 };
 
