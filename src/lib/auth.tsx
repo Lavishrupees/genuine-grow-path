@@ -209,6 +209,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .channel("me:" + uid)
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${uid}` }, () => loadProfile(uid))
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${uid}` }, () => loadProfile(uid))
+      .on("postgres_changes", { event: "*", schema: "public", table: "portfolios", filter: `user_id=eq.${uid}` }, () => loadProfile(uid))
+      .on("postgres_changes", { event: "*", schema: "public", table: "investments", filter: `user_id=eq.${uid}` }, () => loadProfile(uid))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [session?.user, loadProfile]);
