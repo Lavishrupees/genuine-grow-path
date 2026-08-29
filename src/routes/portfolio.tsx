@@ -164,14 +164,14 @@ function PortfolioPage() {
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-secondary/40 p-4">
           <span className="grid h-11 w-11 place-items-center rounded-full bg-emerald-900 font-display text-sm font-bold text-white">
-            {SUMMARY.clientName.split(" ").map((s) => s[0]).join("")}
+            {summary.clientName.split(" ").map((s) => s[0]).join("")}
           </span>
           <div className="min-w-0">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Client name</div>
-            <div className="truncate font-display text-lg font-semibold">{SUMMARY.clientName}</div>
+            <div className="truncate font-display text-lg font-semibold">{summary.clientName}</div>
           </div>
           <Badge className="ml-auto bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-            <ShieldCheck className="mr-1 h-3.5 w-3.5" /> {SUMMARY.status}
+            <ShieldCheck className="mr-1 h-3.5 w-3.5" /> {summary.status}
           </Badge>
         </div>
       </header>
@@ -184,21 +184,21 @@ function PortfolioPage() {
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold">
               <Wallet className="h-4 w-4" /> Current value
             </div>
-            <div className="mt-3 font-display text-5xl font-bold leading-none sm:text-6xl">{usd(SUMMARY.currentValue)}</div>
+            <div className="mt-3 font-display text-5xl font-bold leading-none sm:text-6xl">{usd(summary.currentValue)}</div>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-white/75">
               <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1">
-                <TrendingUp className="h-4 w-4 text-gold" /> +{SUMMARY.roi.toFixed(2)}% all-time
+                <TrendingUp className="h-4 w-4 text-gold" /> +{summary.roi.toFixed(2)}% all-time
               </span>
-              <span className="rounded-full bg-white/10 px-3 py-1">Profit {usd(SUMMARY.totalProfit)}</span>
+              <span className="rounded-full bg-white/10 px-3 py-1">Profit {usd(summary.totalProfit)}</span>
             </div>
           </div>
         </Card>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-          <MiniStat label="Amount invested" value={usd(SUMMARY.amountInvested)} icon={PiggyBank} />
-          <MiniStat label="Total profit" value={usd(SUMMARY.totalProfit)} icon={TrendingUp} positive />
-          <MiniStat label="ROI" value={`${SUMMARY.roi.toFixed(2)}%`} icon={Percent} positive />
-          <MiniStat label="Status" value={SUMMARY.status} icon={ShieldCheck} />
+          <MiniStat label="Amount invested" value={usd(summary.amountInvested)} icon={PiggyBank} />
+          <MiniStat label="Total profit" value={usd(summary.totalProfit)} icon={TrendingUp} positive />
+          <MiniStat label="ROI" value={`${summary.roi.toFixed(2)}%`} icon={Percent} positive />
+          <MiniStat label="Status" value={summary.status} icon={ShieldCheck} />
         </div>
       </div>
 
@@ -209,7 +209,7 @@ function PortfolioPage() {
           <p className="text-sm text-muted-foreground">Value progression over the last 12 months.</p>
           <div className="mt-4 h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={GROWTH}>
+              <AreaChart data={growth}>
                 <defs>
                   <linearGradient id="pf-growth" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="oklch(0.45 0.11 155)" stopOpacity={0.55} />
@@ -232,8 +232,8 @@ function PortfolioPage() {
           <div className="mt-4 h-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={ALLOCATION} dataKey="value" nameKey="name" innerRadius="52%" outerRadius="80%" paddingAngle={3}>
-                  {ALLOCATION.map((_, i) => <Cell key={i} fill={SLICE_COLORS[i % SLICE_COLORS.length]} />)}
+                <Pie data={allocation} dataKey="value" nameKey="name" innerRadius="52%" outerRadius="80%" paddingAngle={3}>
+                  {allocation.map((_, i) => <Cell key={i} fill={SLICE_COLORS[i % SLICE_COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(v: number) => usd(v)} contentStyle={{ borderRadius: 8 }} />
                 <Legend verticalAlign="bottom" height={24} />
@@ -247,7 +247,7 @@ function PortfolioPage() {
           <p className="text-sm text-muted-foreground">Profit generated per month.</p>
           <div className="mt-4 h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MONTHLY_PROFIT}>
+              <BarChart data={monthlyProfit}>
                 <CartesianGrid stroke="oklch(0.91 0.012 255)" strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" stroke="oklch(0.5 0.03 255)" fontSize={11} />
                 <YAxis stroke="oklch(0.5 0.03 255)" fontSize={11} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -355,7 +355,7 @@ function PortfolioPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{detail?.id} — {detail?.plan} plan</DialogTitle>
-            <DialogDescription>Investment details for {SUMMARY.clientName}.</DialogDescription>
+            <DialogDescription>Investment details for {summary.clientName}.</DialogDescription>
           </DialogHeader>
           {detail && (
             <dl className="grid grid-cols-2 gap-4 text-sm">
