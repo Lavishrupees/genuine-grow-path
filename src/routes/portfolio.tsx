@@ -76,7 +76,7 @@ const dateFmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: 
 type StatusFilter = "All" | "Active" | "Completed" | "Pending";
 
 function PortfolioPage() {
-  const { session, loading } = useAuth();
+  const { user, session, loading } = useAuth();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("All");
@@ -86,16 +86,71 @@ function PortfolioPage() {
 
   useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
 
+  // Every figure below comes from the authenticated client's own RLS-protected rows.
+  const investments: InvestmentRow[] = useMemo(() => {
+    const own = (user?.investments ?? []).map((i) => ({
+      id: i.id,
+      plan: i.plan,
+      amountInvested: i.amountInvested,
+      currentValue: i.currentValue,
+      profit: i.profit,
+      roi: i.roi,
+      startDate: i.startDate,
+      maturityDate: i.maturityDate ?? i.startDate,
+      status: (["Active", "Completed", "Pending"].includes(i.status) ? i.status : "Active") as InvestmentRow["status"],
+    }));
+    if (own.length > 0 || !user?.portfolio) return own;
+    // Single summary position when the client has no itemised records yet.
+    const invested = user.invested;
+    const value = user.portfolio.value;
+    return invested > 0 || value > 0
+      ? [{
+          id: (user.portfolioId ?? user.id).slice(0, 8).toUpperCase(),
+          plan: user.plan,
+          amountInvested: invested,
+          currentValue: value,
+          profit: user.portfolio.profit,
+          roi: user.portfolio.roi,
+          startDate: new Date().toISOString().slice(0, 10),
+          maturityDate: new Date().toISOString().slice(0, 10),
+          status: "Active" as const,
+        }]
+      : [];
+  }, [user]);
+
+  const summary: PortfolioSummary = useMemo(() => ({
+    clientName: user?.name ?? "Investor",
+    amountInvested: user?.invested ?? 0,
+    currentValue: user?.portfolio?.value ?? 0,
+    totalProfit: user?.portfolio?.profit ?? 0,
+    roi: user?.portfolio?.roi ?? 0,
+    status: (user?.portfolio?.status as PortfolioSummary["status"]) ?? "Active",
+  }), [user]);
+
+  const growth = useMemo(
+    () => buildGrowth(summary.amountInvested, summary.currentValue),
+    [summary.amountInvested, summary.currentValue],
+  );
+  const monthlyProfit = useMemo(
+    () => growth.map((g, i) => ({ month: g.month, profit: i === 0 ? 0 : g.value - growth[i - 1].value })),
+    [growth],
+  );
+  const allocation = useMemo(
+    () => investments.map((i) => ({ name: i.plan, value: i.currentValue })),
+    [investments],
+  );
+
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return INVESTMENTS.filter((r) => {
+    return investments.filter((r) => {
       if (status !== "All" && r.status !== status) return false;
       if (q && !r.id.toLowerCase().includes(q) && !r.plan.toLowerCase().includes(q)) return false;
       if (from && r.startDate < from) return false;
       if (to && r.startDate > to) return false;
       return true;
     });
-  }, [query, status, from, to]);
+  }, [investments, query, status, from, to]);
+
 
   if (!session) return null;
 
