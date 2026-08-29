@@ -16,6 +16,18 @@ export type Tx = {
   admin_note?: string | null;
 };
 
+export type Investment = {
+  id: string;
+  plan: string;
+  amountInvested: number;
+  currentValue: number;
+  profit: number;
+  roi: number;
+  startDate: string;
+  maturityDate: string | null;
+  status: string;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -28,9 +40,13 @@ export type User = {
   verified: boolean;
   twoFactor: boolean;
   history: Tx[];
-  /** Present only for demo showcase accounts; overrides computed portfolio figures. */
+  /** This client's own portfolio row (private, RLS-protected). */
+  portfolioId: string | null;
+  investments: Investment[];
+  /** Portfolio metrics for this client only. */
   portfolio?: { value: number; profit: number; roi: number; status: string };
 };
+
 
 type AuthCtx = {
   user: User | null;
