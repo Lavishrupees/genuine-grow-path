@@ -51,43 +51,18 @@ export type InvestmentRow = {
   status: "Active" | "Completed" | "Pending";
 };
 
-const SUMMARY: PortfolioSummary = {
-  clientName: "Katrina James",
-  amountInvested: 35000,
-  currentValue: 647990,
-  totalProfit: 622990,
-  roi: 1779.97,
-  status: "Active",
-};
+const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const INVESTMENTS: InvestmentRow[] = [
-  { id: "INV-10041", plan: "VIP", amountInvested: 10000, currentValue: 318400, profit: 308400, roi: 3084.0, startDate: "2025-02-14", maturityDate: "2026-08-14", status: "Active" },
-  { id: "INV-10042", plan: "Gold", amountInvested: 7500, currentValue: 196250, profit: 188750, roi: 2516.67, startDate: "2025-05-02", maturityDate: "2026-11-02", status: "Active" },
-  { id: "INV-10043", plan: "Silver", amountInvested: 4500, currentValue: 88340, profit: 83840, roi: 1863.11, startDate: "2025-08-19", maturityDate: "2026-02-19", status: "Completed" },
-  { id: "INV-10044", plan: "Starter", amountInvested: 3000, currentValue: 45000, profit: 42000, roi: 1400.0, startDate: "2026-01-08", maturityDate: "2026-07-08", status: "Pending" },
-];
+/** Smooth 12-month curve from the client's own starting capital to their current value. */
+function buildGrowth(start: number, end: number) {
+  const from = start > 0 ? start : end > 0 ? end / 3 : 0;
+  return MONTH_LABELS.map((month, i) => {
+    const t = i / (MONTH_LABELS.length - 1);
+    return { month, value: Math.round(from + (end - from) * Math.pow(t, 1.35)) };
+  });
+}
 
-const GROWTH = [
-  { month: "Jan", value: 25000 },
-  { month: "Feb", value: 48200 },
-  { month: "Mar", value: 91400 },
-  { month: "Apr", value: 143900 },
-  { month: "May", value: 208600 },
-  { month: "Jun", value: 287100 },
-  { month: "Jul", value: 361500 },
-  { month: "Aug", value: 428700 },
-  { month: "Sep", value: 495200 },
-  { month: "Oct", value: 552800 },
-  { month: "Nov", value: 604300 },
-  { month: "Dec", value: 647990 },
-];
 
-const MONTHLY_PROFIT = GROWTH.map((g, i) => ({
-  month: g.month,
-  profit: i === 0 ? 0 : g.value - GROWTH[i - 1].value,
-}));
-
-const ALLOCATION = INVESTMENTS.map((i) => ({ name: i.plan, value: i.currentValue }));
 const SLICE_COLORS = [
   "oklch(0.45 0.11 155)",
   "oklch(0.78 0.14 85)",
