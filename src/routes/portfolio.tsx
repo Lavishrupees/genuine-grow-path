@@ -51,43 +51,18 @@ export type InvestmentRow = {
   status: "Active" | "Completed" | "Pending";
 };
 
-const SUMMARY: PortfolioSummary = {
-  clientName: "Katrina James",
-  amountInvested: 35000,
-  currentValue: 647990,
-  totalProfit: 622990,
-  roi: 1779.97,
-  status: "Active",
-};
+const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const INVESTMENTS: InvestmentRow[] = [
-  { id: "INV-10041", plan: "VIP", amountInvested: 10000, currentValue: 318400, profit: 308400, roi: 3084.0, startDate: "2025-02-14", maturityDate: "2026-08-14", status: "Active" },
-  { id: "INV-10042", plan: "Gold", amountInvested: 7500, currentValue: 196250, profit: 188750, roi: 2516.67, startDate: "2025-05-02", maturityDate: "2026-11-02", status: "Active" },
-  { id: "INV-10043", plan: "Silver", amountInvested: 4500, currentValue: 88340, profit: 83840, roi: 1863.11, startDate: "2025-08-19", maturityDate: "2026-02-19", status: "Completed" },
-  { id: "INV-10044", plan: "Starter", amountInvested: 3000, currentValue: 45000, profit: 42000, roi: 1400.0, startDate: "2026-01-08", maturityDate: "2026-07-08", status: "Pending" },
-];
+/** Smooth 12-month curve from the client's own starting capital to their current value. */
+function buildGrowth(start: number, end: number) {
+  const from = start > 0 ? start : end > 0 ? end / 3 : 0;
+  return MONTH_LABELS.map((month, i) => {
+    const t = i / (MONTH_LABELS.length - 1);
+    return { month, value: Math.round(from + (end - from) * Math.pow(t, 1.35)) };
+  });
+}
 
-const GROWTH = [
-  { month: "Jan", value: 25000 },
-  { month: "Feb", value: 48200 },
-  { month: "Mar", value: 91400 },
-  { month: "Apr", value: 143900 },
-  { month: "May", value: 208600 },
-  { month: "Jun", value: 287100 },
-  { month: "Jul", value: 361500 },
-  { month: "Aug", value: 428700 },
-  { month: "Sep", value: 495200 },
-  { month: "Oct", value: 552800 },
-  { month: "Nov", value: 604300 },
-  { month: "Dec", value: 647990 },
-];
 
-const MONTHLY_PROFIT = GROWTH.map((g, i) => ({
-  month: g.month,
-  profit: i === 0 ? 0 : g.value - GROWTH[i - 1].value,
-}));
-
-const ALLOCATION = INVESTMENTS.map((i) => ({ name: i.plan, value: i.currentValue }));
 const SLICE_COLORS = [
   "oklch(0.45 0.11 155)",
   "oklch(0.78 0.14 85)",
@@ -101,7 +76,7 @@ const dateFmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: 
 type StatusFilter = "All" | "Active" | "Completed" | "Pending";
 
 function PortfolioPage() {
-  const { session, loading } = useAuth();
+  const { user, session, loading } = useAuth();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("All");
@@ -111,16 +86,71 @@ function PortfolioPage() {
 
   useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
 
+  // Every figure below comes from the authenticated client's own RLS-protected rows.
+  const investments: InvestmentRow[] = useMemo(() => {
+    const own = (user?.investments ?? []).map((i) => ({
+      id: i.id,
+      plan: i.plan,
+      amountInvested: i.amountInvested,
+      currentValue: i.currentValue,
+      profit: i.profit,
+      roi: i.roi,
+      startDate: i.startDate,
+      maturityDate: i.maturityDate ?? i.startDate,
+      status: (["Active", "Completed", "Pending"].includes(i.status) ? i.status : "Active") as InvestmentRow["status"],
+    }));
+    if (own.length > 0 || !user?.portfolio) return own;
+    // Single summary position when the client has no itemised records yet.
+    const invested = user.invested;
+    const value = user.portfolio.value;
+    return invested > 0 || value > 0
+      ? [{
+          id: (user.portfolioId ?? user.id).slice(0, 8).toUpperCase(),
+          plan: user.plan,
+          amountInvested: invested,
+          currentValue: value,
+          profit: user.portfolio.profit,
+          roi: user.portfolio.roi,
+          startDate: new Date().toISOString().slice(0, 10),
+          maturityDate: new Date().toISOString().slice(0, 10),
+          status: "Active" as const,
+        }]
+      : [];
+  }, [user]);
+
+  const summary: PortfolioSummary = useMemo(() => ({
+    clientName: user?.name ?? "Investor",
+    amountInvested: user?.invested ?? 0,
+    currentValue: user?.portfolio?.value ?? 0,
+    totalProfit: user?.portfolio?.profit ?? 0,
+    roi: user?.portfolio?.roi ?? 0,
+    status: (user?.portfolio?.status as PortfolioSummary["status"]) ?? "Active",
+  }), [user]);
+
+  const growth = useMemo(
+    () => buildGrowth(summary.amountInvested, summary.currentValue),
+    [summary.amountInvested, summary.currentValue],
+  );
+  const monthlyProfit = useMemo(
+    () => growth.map((g, i) => ({ month: g.month, profit: i === 0 ? 0 : g.value - growth[i - 1].value })),
+    [growth],
+  );
+  const allocation = useMemo(
+    () => investments.map((i) => ({ name: i.plan, value: i.currentValue })),
+    [investments],
+  );
+
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return INVESTMENTS.filter((r) => {
+    return investments.filter((r) => {
       if (status !== "All" && r.status !== status) return false;
       if (q && !r.id.toLowerCase().includes(q) && !r.plan.toLowerCase().includes(q)) return false;
       if (from && r.startDate < from) return false;
       if (to && r.startDate > to) return false;
       return true;
     });
-  }, [query, status, from, to]);
+  }, [investments, query, status, from, to]);
+
 
   if (!session) return null;
 
@@ -134,14 +164,14 @@ function PortfolioPage() {
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-secondary/40 p-4">
           <span className="grid h-11 w-11 place-items-center rounded-full bg-emerald-900 font-display text-sm font-bold text-white">
-            {SUMMARY.clientName.split(" ").map((s) => s[0]).join("")}
+            {summary.clientName.split(" ").map((s) => s[0]).join("")}
           </span>
           <div className="min-w-0">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Client name</div>
-            <div className="truncate font-display text-lg font-semibold">{SUMMARY.clientName}</div>
+            <div className="truncate font-display text-lg font-semibold">{summary.clientName}</div>
           </div>
           <Badge className="ml-auto bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-            <ShieldCheck className="mr-1 h-3.5 w-3.5" /> {SUMMARY.status}
+            <ShieldCheck className="mr-1 h-3.5 w-3.5" /> {summary.status}
           </Badge>
         </div>
       </header>
@@ -154,21 +184,21 @@ function PortfolioPage() {
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold">
               <Wallet className="h-4 w-4" /> Current value
             </div>
-            <div className="mt-3 font-display text-5xl font-bold leading-none sm:text-6xl">{usd(SUMMARY.currentValue)}</div>
+            <div className="mt-3 font-display text-5xl font-bold leading-none sm:text-6xl">{usd(summary.currentValue)}</div>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-white/75">
               <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1">
-                <TrendingUp className="h-4 w-4 text-gold" /> +{SUMMARY.roi.toFixed(2)}% all-time
+                <TrendingUp className="h-4 w-4 text-gold" /> +{summary.roi.toFixed(2)}% all-time
               </span>
-              <span className="rounded-full bg-white/10 px-3 py-1">Profit {usd(SUMMARY.totalProfit)}</span>
+              <span className="rounded-full bg-white/10 px-3 py-1">Profit {usd(summary.totalProfit)}</span>
             </div>
           </div>
         </Card>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-          <MiniStat label="Amount invested" value={usd(SUMMARY.amountInvested)} icon={PiggyBank} />
-          <MiniStat label="Total profit" value={usd(SUMMARY.totalProfit)} icon={TrendingUp} positive />
-          <MiniStat label="ROI" value={`${SUMMARY.roi.toFixed(2)}%`} icon={Percent} positive />
-          <MiniStat label="Status" value={SUMMARY.status} icon={ShieldCheck} />
+          <MiniStat label="Amount invested" value={usd(summary.amountInvested)} icon={PiggyBank} />
+          <MiniStat label="Total profit" value={usd(summary.totalProfit)} icon={TrendingUp} positive />
+          <MiniStat label="ROI" value={`${summary.roi.toFixed(2)}%`} icon={Percent} positive />
+          <MiniStat label="Status" value={summary.status} icon={ShieldCheck} />
         </div>
       </div>
 
@@ -179,7 +209,7 @@ function PortfolioPage() {
           <p className="text-sm text-muted-foreground">Value progression over the last 12 months.</p>
           <div className="mt-4 h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={GROWTH}>
+              <AreaChart data={growth}>
                 <defs>
                   <linearGradient id="pf-growth" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="oklch(0.45 0.11 155)" stopOpacity={0.55} />
@@ -202,8 +232,8 @@ function PortfolioPage() {
           <div className="mt-4 h-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={ALLOCATION} dataKey="value" nameKey="name" innerRadius="52%" outerRadius="80%" paddingAngle={3}>
-                  {ALLOCATION.map((_, i) => <Cell key={i} fill={SLICE_COLORS[i % SLICE_COLORS.length]} />)}
+                <Pie data={allocation} dataKey="value" nameKey="name" innerRadius="52%" outerRadius="80%" paddingAngle={3}>
+                  {allocation.map((_, i) => <Cell key={i} fill={SLICE_COLORS[i % SLICE_COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(v: number) => usd(v)} contentStyle={{ borderRadius: 8 }} />
                 <Legend verticalAlign="bottom" height={24} />
@@ -217,7 +247,7 @@ function PortfolioPage() {
           <p className="text-sm text-muted-foreground">Profit generated per month.</p>
           <div className="mt-4 h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MONTHLY_PROFIT}>
+              <BarChart data={monthlyProfit}>
                 <CartesianGrid stroke="oklch(0.91 0.012 255)" strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" stroke="oklch(0.5 0.03 255)" fontSize={11} />
                 <YAxis stroke="oklch(0.5 0.03 255)" fontSize={11} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -325,7 +355,7 @@ function PortfolioPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{detail?.id} — {detail?.plan} plan</DialogTitle>
-            <DialogDescription>Investment details for {SUMMARY.clientName}.</DialogDescription>
+            <DialogDescription>Investment details for {summary.clientName}.</DialogDescription>
           </DialogHeader>
           {detail && (
             <dl className="grid grid-cols-2 gap-4 text-sm">

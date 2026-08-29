@@ -103,6 +103,89 @@ export type Database = {
           },
         ]
       }
+      investments: {
+        Row: {
+          amount_invested: number
+          created_at: string
+          current_value: number
+          id: string
+          maturity_date: string | null
+          plan: string
+          portfolio_id: string | null
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_invested?: number
+          created_at?: string
+          current_value?: number
+          id?: string
+          maturity_date?: string | null
+          plan?: string
+          portfolio_id?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_invested?: number
+          created_at?: string
+          current_value?: number
+          id?: string
+          maturity_date?: string | null
+          plan?: string
+          portfolio_id?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investments_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["portfolio_id"]
+          },
+        ]
+      }
+      portfolios: {
+        Row: {
+          balance: number
+          created_at: string
+          portfolio_id: string
+          status: string
+          total_invested: number
+          total_profit: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          portfolio_id?: string
+          status?: string
+          total_invested?: number
+          total_profit?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          portfolio_id?: string
+          status?: string
+          total_invested?: number
+          total_profit?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           balance: number

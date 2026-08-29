@@ -16,6 +16,18 @@ export type Tx = {
   admin_note?: string | null;
 };
 
+export type Investment = {
+  id: string;
+  plan: string;
+  amountInvested: number;
+  currentValue: number;
+  profit: number;
+  roi: number;
+  startDate: string;
+  maturityDate: string | null;
+  status: string;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -28,9 +40,13 @@ export type User = {
   verified: boolean;
   twoFactor: boolean;
   history: Tx[];
-  /** Present only for demo showcase accounts; overrides computed portfolio figures. */
+  /** This client's own portfolio row (private, RLS-protected). */
+  portfolioId: string | null;
+  investments: Investment[];
+  /** Portfolio metrics for this client only. */
   portfolio?: { value: number; profit: number; roi: number; status: string };
 };
+
 
 type AuthCtx = {
   user: User | null;
@@ -90,31 +106,81 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile = created;
     }
 
-    const [{ data: roles, error: rolesError }, { data: txs, error: txError }] = await Promise.all([
+    const [
+      { data: roles, error: rolesError },
+      { data: txs, error: txError },
+      { data: pf, error: pfError },
+      { data: invRows, error: invError },
+    ] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", uid),
       supabase.from("transactions").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(50),
+      supabase.from("portfolios").select("*").eq("user_id", uid).maybeSingle(),
+      supabase.from("investments").select("*").eq("user_id", uid).order("start_date", { ascending: false }),
     ]);
     if (rolesError) throw new Error(rolesError.message);
     if (txError) throw new Error(txError.message);
+    if (pfError) throw new Error(pfError.message);
+    if (invError) throw new Error(invError.message);
+
+    let portfolio = pf;
+    if (!portfolio) {
+      // Safety net: the signup trigger normally creates this row.
+      const { data: createdPf } = await supabase
+        .from("portfolios")
+        .upsert({ user_id: uid }, { onConflict: "user_id" })
+        .select("*")
+        .maybeSingle();
+      portfolio = createdPf ?? null;
+    }
+
+    const investments: Investment[] = (invRows ?? []).map((r: any) => {
+      const amountInvested = Number(r.amount_invested ?? 0);
+      const currentValue = Number(r.current_value ?? 0);
+      const profit = currentValue - amountInvested;
+      return {
+        id: r.id,
+        plan: r.plan,
+        amountInvested,
+        currentValue,
+        profit,
+        roi: amountInvested > 0 ? (profit / amountInvested) * 100 : 0,
+        startDate: r.start_date,
+        maturityDate: r.maturity_date,
+        status: r.status,
+      };
+    });
 
     setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
     const demo = getDemoOverride(profile.email);
+    const pfInvested = Number(portfolio?.total_invested ?? 0);
+    const pfProfit = Number(portfolio?.total_profit ?? 0);
+    const pfValue = pfInvested + pfProfit;
     setUser({
       id: profile.id,
       name: demo?.name ?? (profile.name || profile.email?.split("@")[0] || "Investor"),
       email: profile.email,
       plan: demo?.plan ?? ((profile.plan as PlanName) ?? "Starter"),
-      balance: demo?.balance ?? Number(profile.balance ?? 0),
-      invested: demo?.invested ?? Number(profile.invested ?? 0),
+      balance: demo?.balance ?? Number(portfolio?.balance ?? profile.balance ?? 0),
+      invested: demo?.invested ?? (pfInvested || Number(profile.invested ?? 0)),
       totalDeposits: demo?.totalDeposits ?? Number(profile.total_deposits ?? 0),
       totalWithdrawals: demo?.totalWithdrawals ?? Number(profile.total_withdrawals ?? 0),
       verified: demo ? demo.verified : !!profile.verified,
       twoFactor: !!profile.two_factor,
       history: (txs ?? []).map(rowToTx),
+      portfolioId: portfolio?.portfolio_id ?? null,
+      investments,
       portfolio: demo
         ? { value: demo.portfolioValue, profit: demo.totalProfit, roi: demo.roi, status: demo.status }
-        : undefined,
+        : portfolio
+          ? {
+              value: pfValue,
+              profit: pfProfit,
+              roi: pfInvested > 0 ? (pfProfit / pfInvested) * 100 : 0,
+              status: (portfolio as any).status ?? "Active",
+            }
+          : undefined,
     });
+
   }, []);
 
   useEffect(() => {
@@ -143,6 +209,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .channel("me:" + uid)
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${uid}` }, () => loadProfile(uid))
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${uid}` }, () => loadProfile(uid))
+      .on("postgres_changes", { event: "*", schema: "public", table: "portfolios", filter: `user_id=eq.${uid}` }, () => loadProfile(uid))
+      .on("postgres_changes", { event: "*", schema: "public", table: "investments", filter: `user_id=eq.${uid}` }, () => loadProfile(uid))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [session?.user, loadProfile]);
