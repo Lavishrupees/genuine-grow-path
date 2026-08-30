@@ -303,6 +303,7 @@ export type Database = {
         Args: { _cid: string; _status: string }
         Returns: undefined
       }
+      grant_admin_by_email: { Args: { _email: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -311,6 +312,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      revoke_admin_by_email: { Args: { _email: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"

@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { ShieldCheck, Users as UsersIcon, Receipt, MessageSquare, Send, Search, CheckCircle2, RotateCcw, CheckCheck, Check } from "lucide-react";
 import { playChime, isSupportOnline, formatTime } from "@/lib/chat-support";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin — Genuine Investment" }] }),
   component: AdminPage,
 });
@@ -41,9 +41,15 @@ function AdminPage() {
   const navigate = useNavigate();
   useEffect(() => {
     if (loading) return;
-    if (!session) navigate({ to: "/auth" });
-    else if (!isAdmin) navigate({ to: "/dashboard" });
+    if (!session) navigate({ to: "/admin/login", replace: true });
+    else if (!isAdmin) navigate({ to: "/dashboard", replace: true });
   }, [loading, session, isAdmin, navigate]);
+
+  const { signOut } = useAuth();
+  const handleAdminSignOut = async () => {
+    await signOut();
+    navigate({ to: "/admin/login", replace: true });
+  };
 
   const [users, setUsers] = useState<ProfileRow[]>([]);
   const [txs, setTxs] = useState<TxRow[]>([]);
