@@ -91,6 +91,7 @@ function AdminPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_messages" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_conversations" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "portfolios" }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [isAdmin, load]);
@@ -147,7 +148,7 @@ function AdminPage() {
       <Tabs defaultValue="transactions" className="mt-8">
         <TabsList>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="users">Users / Accounts</TabsTrigger>
           <TabsTrigger value="chat" className="relative">
             Support chats
             {unreadTotal > 0 && (

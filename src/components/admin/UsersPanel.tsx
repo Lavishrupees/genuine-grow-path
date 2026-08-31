@@ -161,19 +161,18 @@ function UserProfileDialog({
   const save = async () => {
     setSaving(true);
     try {
-      const { error: pfErr } = await supabase
+      const { data: pfRows, error: pfErr } = await supabase
         .from("portfolios")
-        .upsert(
-          {
-            user_id: user.id,
-            total_invested: nInvested,
-            total_profit: newProfit,
-            balance: nBalance,
-            status: status.trim(),
-          },
-          { onConflict: "user_id" },
-        );
+        .update({
+          total_invested: nInvested,
+          total_profit: newProfit,
+          balance: nBalance,
+          status: status.trim(),
+        })
+        .eq("user_id", user.id)
+        .select("portfolio_id");
       if (pfErr) throw new Error(pfErr.message);
+      if (!pfRows || pfRows.length === 0) throw new Error("No portfolio record found for this user.");
 
       const { error: prErr } = await supabase
         .from("profiles")
