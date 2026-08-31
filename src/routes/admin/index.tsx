@@ -186,32 +186,9 @@ function AdminPage() {
         </TabsContent>
 
         <TabsContent value="users" className="mt-4">
-          <Card className="overflow-x-auto p-0">
-            <table className="w-full min-w-[820px] text-sm">
-              <thead className="bg-secondary/60 text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <tr><th className="p-3">Joined</th><th>Name</th><th>Email</th><th>Plan</th><th>Balance</th><th>Deposits</th><th>Withdrawals</th><th className="pr-3">Status</th></tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u.id} className="border-t border-border">
-                    <td className="p-3 text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</td>
-                    <td className="font-semibold">{u.name}</td>
-                    <td className="text-xs">{u.email}</td>
-                    <td>{u.plan}</td>
-                    <td className="font-semibold">${Number(u.balance).toLocaleString()}</td>
-                    <td className="text-emerald-600 dark:text-emerald-400">${Number(u.total_deposits).toLocaleString()}</td>
-                    <td className="text-destructive">${Number(u.total_withdrawals).toLocaleString()}</td>
-                    <td className="pr-3 text-xs">
-                      {u.verified && <span className="mr-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-emerald-700 dark:text-emerald-300">KYC</span>}
-                      {u.two_factor && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-gold-foreground">2FA</span>}
-                    </td>
-                  </tr>
-                ))}
-                {users.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-sm text-muted-foreground">No users yet.</td></tr>}
-              </tbody>
-            </table>
-          </Card>
+          <UsersPanel users={users} portfolios={portfolios} onChanged={load} />
         </TabsContent>
+
 
         <TabsContent value="chat" className="mt-4">
           <ChatPanel conversations={conversations} onChanged={load} />
