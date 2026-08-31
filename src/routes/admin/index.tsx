@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ShieldCheck, Users as UsersIcon, Receipt, MessageSquare, Send, Search, CheckCircle2, RotateCcw, CheckCheck, Check } from "lucide-react";
 import { playChime, isSupportOnline, formatTime } from "@/lib/chat-support";
+import { UsersPanel, type PortfolioRow } from "@/components/admin/UsersPanel";
+
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin — Genuine Investment" }] }),
