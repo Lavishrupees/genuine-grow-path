@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ShieldCheck, Users as UsersIcon, Receipt, MessageSquare, Send, Search, CheckCircle2, RotateCcw, CheckCheck, Check } from "lucide-react";
 import { playChime, isSupportOnline, formatTime } from "@/lib/chat-support";
+import { UsersPanel, type PortfolioRow } from "@/components/admin/UsersPanel";
+
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin — Genuine Investment" }] }),
@@ -54,17 +56,21 @@ function AdminPage() {
   const [users, setUsers] = useState<ProfileRow[]>([]);
   const [txs, setTxs] = useState<TxRow[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [portfolios, setPortfolios] = useState<PortfolioRow[]>([]);
 
   const load = useCallback(async () => {
-    const [u, t, c] = await Promise.all([
+    const [u, t, c, p] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("chat_conversations").select("*").order("last_message_at", { ascending: false }).limit(500),
+      supabase.from("portfolios").select("*"),
     ]);
     setUsers((u.data ?? []) as ProfileRow[]);
     setTxs((t.data ?? []) as TxRow[]);
     setConversations((c.data ?? []) as Conversation[]);
+    setPortfolios((p.data ?? []) as PortfolioRow[]);
   }, []);
+
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
@@ -85,6 +91,7 @@ function AdminPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_messages" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_conversations" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "portfolios" }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [isAdmin, load]);
@@ -141,7 +148,7 @@ function AdminPage() {
       <Tabs defaultValue="transactions" className="mt-8">
         <TabsList>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="users">Users / Accounts</TabsTrigger>
           <TabsTrigger value="chat" className="relative">
             Support chats
             {unreadTotal > 0 && (
@@ -186,32 +193,9 @@ function AdminPage() {
         </TabsContent>
 
         <TabsContent value="users" className="mt-4">
-          <Card className="overflow-x-auto p-0">
-            <table className="w-full min-w-[820px] text-sm">
-              <thead className="bg-secondary/60 text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <tr><th className="p-3">Joined</th><th>Name</th><th>Email</th><th>Plan</th><th>Balance</th><th>Deposits</th><th>Withdrawals</th><th className="pr-3">Status</th></tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u.id} className="border-t border-border">
-                    <td className="p-3 text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</td>
-                    <td className="font-semibold">{u.name}</td>
-                    <td className="text-xs">{u.email}</td>
-                    <td>{u.plan}</td>
-                    <td className="font-semibold">${Number(u.balance).toLocaleString()}</td>
-                    <td className="text-emerald-600 dark:text-emerald-400">${Number(u.total_deposits).toLocaleString()}</td>
-                    <td className="text-destructive">${Number(u.total_withdrawals).toLocaleString()}</td>
-                    <td className="pr-3 text-xs">
-                      {u.verified && <span className="mr-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-emerald-700 dark:text-emerald-300">KYC</span>}
-                      {u.two_factor && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-gold-foreground">2FA</span>}
-                    </td>
-                  </tr>
-                ))}
-                {users.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-sm text-muted-foreground">No users yet.</td></tr>}
-              </tbody>
-            </table>
-          </Card>
+          <UsersPanel users={users} portfolios={portfolios} onChanged={load} />
         </TabsContent>
+
 
         <TabsContent value="chat" className="mt-4">
           <ChatPanel conversations={conversations} onChanged={load} />
