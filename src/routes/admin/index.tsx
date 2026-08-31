@@ -56,17 +56,21 @@ function AdminPage() {
   const [users, setUsers] = useState<ProfileRow[]>([]);
   const [txs, setTxs] = useState<TxRow[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [portfolios, setPortfolios] = useState<PortfolioRow[]>([]);
 
   const load = useCallback(async () => {
-    const [u, t, c] = await Promise.all([
+    const [u, t, c, p] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("chat_conversations").select("*").order("last_message_at", { ascending: false }).limit(500),
+      supabase.from("portfolios").select("*"),
     ]);
     setUsers((u.data ?? []) as ProfileRow[]);
     setTxs((t.data ?? []) as TxRow[]);
     setConversations((c.data ?? []) as Conversation[]);
+    setPortfolios((p.data ?? []) as PortfolioRow[]);
   }, []);
+
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
