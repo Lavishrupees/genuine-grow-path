@@ -17,12 +17,14 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const { user, session, loading, update } = useAuth();
+  const { user, session, loading, update, refresh } = useAuth();
   const navigate = useNavigate();
   const chartBase = Math.max(user?.invested ?? 10000, 10000);
   const series = useMemo(() => buildSeries(chartBase, 30), [chartBase]);
 
   useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
+  // Always pull the latest portfolio record from the database on open.
+  useEffect(() => { if (session) void refresh(); }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!user) return null;
 
   const current = user.portfolio?.value ?? series[series.length - 1].portfolio;
