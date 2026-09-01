@@ -151,35 +151,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
-    const demo = getDemoOverride(profile.email);
     const pfInvested = Number(portfolio?.total_invested ?? 0);
     const pfProfit = Number(portfolio?.total_profit ?? 0);
     const pfValue = pfInvested + pfProfit;
     setUser({
       id: profile.id,
-      name: demo?.name ?? (profile.name || profile.email?.split("@")[0] || "Investor"),
+      name: profile.name || profile.email?.split("@")[0] || "Investor",
       email: profile.email,
-      plan: demo?.plan ?? ((profile.plan as PlanName) ?? "Starter"),
-      balance: demo?.balance ?? Number(portfolio?.balance ?? profile.balance ?? 0),
-      invested: demo?.invested ?? (pfInvested || Number(profile.invested ?? 0)),
-      totalDeposits: demo?.totalDeposits ?? Number(profile.total_deposits ?? 0),
-      totalWithdrawals: demo?.totalWithdrawals ?? Number(profile.total_withdrawals ?? 0),
-      verified: demo ? demo.verified : !!profile.verified,
+      plan: ((profile.plan as PlanName) ?? "Starter"),
+      balance: Number(portfolio?.balance ?? profile.balance ?? 0),
+      invested: pfInvested || Number(profile.invested ?? 0),
+      totalDeposits: Number(profile.total_deposits ?? 0),
+      totalWithdrawals: Number(profile.total_withdrawals ?? 0),
+      verified: !!profile.verified,
       twoFactor: !!profile.two_factor,
       history: (txs ?? []).map(rowToTx),
       portfolioId: portfolio?.portfolio_id ?? null,
       investments,
-      portfolio: demo
-        ? { value: demo.portfolioValue, profit: demo.totalProfit, roi: demo.roi, status: demo.status }
-        : portfolio
-          ? {
-              value: pfValue,
-              profit: pfProfit,
-              roi: pfInvested > 0 ? (pfProfit / pfInvested) * 100 : 0,
-              status: (portfolio as any).status ?? "Active",
-            }
-          : undefined,
+      portfolio: portfolio
+        ? {
+            value: pfValue,
+            profit: pfProfit,
+            roi: pfInvested > 0 ? (pfProfit / pfInvested) * 100 : 0,
+            status: (portfolio as any).status ?? "Active",
+          }
+        : undefined,
     });
+
 
   }, []);
 
