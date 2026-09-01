@@ -129,6 +129,10 @@ function UserProfileDialog({
   const [value, setValue] = useState("0");
   const [balance, setBalance] = useState("0");
   const [status, setStatus] = useState("Active");
+  const [deposits, setDeposits] = useState("0");
+  const [withdrawals, setWithdrawals] = useState("0");
+  const [plan, setPlan] = useState("Starter");
+  const [verified, setVerified] = useState(false);
 
   const pfInvested = Number(portfolio?.total_invested ?? 0);
   const pfProfit = Number(portfolio?.total_profit ?? 0);
@@ -142,8 +146,13 @@ function UserProfileDialog({
     setValue(String(pfValue));
     setBalance(String(Number(portfolio?.balance ?? user.balance ?? 0)));
     setStatus(portfolio?.status ?? "Active");
+    setDeposits(String(Number(user.total_deposits ?? 0)));
+    setWithdrawals(String(Number(user.total_withdrawals ?? 0)));
+    setPlan(user.plan ?? "Starter");
+    setVerified(!!user.verified);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, portfolio?.portfolio_id]);
+  }, [user?.id, portfolio?.portfolio_id, portfolio?.updated_at]);
+
 
   if (!user) return null;
 
