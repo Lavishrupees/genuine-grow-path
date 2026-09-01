@@ -121,16 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (pfError) throw new Error(pfError.message);
     if (invError) throw new Error(invError.message);
 
-    let portfolio = pf;
-    if (!portfolio) {
-      // Safety net: the signup trigger normally creates this row.
-      const { data: createdPf } = await supabase
-        .from("portfolios")
-        .upsert({ user_id: uid }, { onConflict: "user_id" })
-        .select("*")
-        .maybeSingle();
-      portfolio = createdPf ?? null;
-    }
+    // Portfolios are created by a signup trigger and managed by admins only.
+    const portfolio = pf;
+
 
     const investments: Investment[] = (invRows ?? []).map((r: any) => {
       const amountInvested = Number(r.amount_invested ?? 0);
