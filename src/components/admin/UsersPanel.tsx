@@ -292,6 +292,30 @@ function UserProfileDialog({
                 <Label htmlFor="st">Portfolio status</Label>
                 <Input id="st" value={status} onChange={(e) => setStatus(e.target.value)} placeholder="Active" />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="dep">Total deposits (USD)</Label>
+                <Input id="dep" inputMode="decimal" value={deposits} onChange={(e) => setDeposits(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="wd">Total withdrawals (USD)</Label>
+                <Input id="wd" inputMode="decimal" value={withdrawals} onChange={(e) => setWithdrawals(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="pl">Investment plan</Label>
+                <select
+                  id="pl"
+                  value={plan}
+                  onChange={(e) => setPlan(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  {["Starter", "Silver", "Gold", "VIP"].map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <input id="vf" type="checkbox" checked={verified} onChange={(e) => setVerified(e.target.checked)} className="h-4 w-4" />
+                <Label htmlFor="vf">Verified (KYC)</Label>
+              </div>
+
               <div className="sm:col-span-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total profit (calculated)</span><span className="font-semibold">{usd(newProfit)}</span></div>
                 <div className="mt-1 flex justify-between"><span className="text-muted-foreground">Return / ROI (calculated)</span><span className="font-semibold">{Number.isFinite(newRoi) ? newRoi.toFixed(2) : "0.00"}%</span></div>
