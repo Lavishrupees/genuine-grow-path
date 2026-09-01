@@ -76,7 +76,7 @@ const dateFmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: 
 type StatusFilter = "All" | "Active" | "Completed" | "Pending";
 
 function PortfolioPage() {
-  const { user, session, loading } = useAuth();
+  const { user, session, loading, refresh } = useAuth();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("All");
@@ -85,6 +85,8 @@ function PortfolioPage() {
   const [detail, setDetail] = useState<InvestmentRow | null>(null);
 
   useEffect(() => { if (!loading && !session) navigate({ to: "/auth" }); }, [session, loading, navigate]);
+  // Always pull the latest portfolio record from the database on open.
+  useEffect(() => { if (session) void refresh(); }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Every figure below comes from the authenticated client's own RLS-protected rows.
   const investments: InvestmentRow[] = useMemo(() => {
