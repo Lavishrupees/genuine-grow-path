@@ -159,10 +159,14 @@ function UserProfileDialog({
   const nInvested = Number(invested);
   const nValue = Number(value);
   const nBalance = Number(balance);
+  const nDeposits = Number(deposits);
+  const nWithdrawals = Number(withdrawals);
   const errors: string[] = [];
   if (!Number.isFinite(nInvested) || nInvested < 0) errors.push("Amount invested must be a number of 0 or more.");
   if (!Number.isFinite(nValue) || nValue < 0) errors.push("Current portfolio value must be a number of 0 or more.");
   if (!Number.isFinite(nBalance) || nBalance < 0) errors.push("Account balance must be a number of 0 or more.");
+  if (!Number.isFinite(nDeposits) || nDeposits < 0) errors.push("Total deposits must be a number of 0 or more.");
+  if (!Number.isFinite(nWithdrawals) || nWithdrawals < 0) errors.push("Total withdrawals must be a number of 0 or more.");
   if (!status.trim()) errors.push("Status is required.");
   const newProfit = nValue - nInvested;
   const newRoi = nInvested > 0 ? (newProfit / nInvested) * 100 : 0;
@@ -170,6 +174,7 @@ function UserProfileDialog({
   const save = async () => {
     setSaving(true);
     try {
+      // Single source of truth: this customer's own portfolio row, keyed by their user ID.
       const { data: pfRows, error: pfErr } = await supabase
         .from("portfolios")
         .update({
@@ -179,15 +184,24 @@ function UserProfileDialog({
           status: status.trim(),
         })
         .eq("user_id", user.id)
-        .select("portfolio_id");
+        .select("portfolio_id, user_id");
       if (pfErr) throw new Error(pfErr.message);
       if (!pfRows || pfRows.length === 0) throw new Error("No portfolio record found for this user.");
+      if (pfRows.length > 1 || pfRows[0].user_id !== user.id) throw new Error("Refusing to save: portfolio record mismatch.");
 
       const { error: prErr } = await supabase
         .from("profiles")
-        .update({ invested: nInvested, balance: nBalance })
+        .update({
+          invested: nInvested,
+          balance: nBalance,
+          total_deposits: nDeposits,
+          total_withdrawals: nWithdrawals,
+          plan,
+          verified,
+        })
         .eq("id", user.id);
       if (prErr) throw new Error(prErr.message);
+
 
       toast.success("Portfolio updated");
       setEditing(false);
